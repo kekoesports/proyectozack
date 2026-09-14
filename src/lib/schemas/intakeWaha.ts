@@ -1,0 +1,20 @@
+import { z } from 'zod';
+
+const Id = z.string().min(1).max(160);
+export const IntakeWahaUpdate = z.object({
+  event: z.string().max(80), session: z.string().max(100),
+  me: z.object({ id: Id }).nullish(),
+  payload: z.unknown(),
+});
+export const IntakeWahaMessage = z.object({
+  id: Id, timestamp: z.number().finite().positive(),
+  from: Id, to: Id.nullish(), fromMe: z.boolean(),
+  body: z.string().max(20000).nullish(), hasMedia: z.boolean().optional(),
+  media: z.object({ mimetype: z.string().max(150).nullish(), filename: z.string().max(200).nullish() }).nullish(),
+});
+export const IntakeWahaSession = z.object({
+  name: z.string(), status: z.literal('WORKING'), me: z.object({ id: Id }),
+});
+export const IntakeWahaReceipt = z.object({ id: Id });
+export const IntakeWahaLid = z.object({ lid: z.string().regex(/^\d+@lid$/).nullable(), pn: z.string().regex(/^\d+@c\.us$/) });
+export type IntakeWahaUpdate = z.infer<typeof IntakeWahaUpdate>;

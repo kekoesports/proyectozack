@@ -8,6 +8,8 @@ import { RankingTable } from '@/features/admin/stats/components/RankingTable';
 import { EmptyState } from '@/features/admin/_shared/components/EmptyState';
 
 import type { ReactElement } from 'react';
+import { getChannelRanking } from '@/lib/queries/channel-ranking';
+import { ChannelRankingPanel } from '@/features/admin/stats/components/ChannelRankingPanel';
 
 function formatLastUpdate(date: Date | null): string {
   if (date === null) return 'Sin datos';
@@ -17,10 +19,11 @@ function formatLastUpdate(date: Date | null): string {
 export default async function AdminStatsPage(): Promise<ReactElement> {
   await requirePermission('analytics', 'read');
 
-  const [topCreators, staleCreators, shares] = await Promise.all([
+  const [topCreators, staleCreators, shares, channelRanking] = await Promise.all([
     getTopCreatorsByFollowers(20),
     getStaleStatsCreators(30),
     getActiveStatsShares(),
+    getChannelRanking(),
   ]);
 
   const shareRows = shares.map((s) => ({
@@ -41,6 +44,7 @@ export default async function AdminStatsPage(): Promise<ReactElement> {
         </p>
       </div>
 
+      <ChannelRankingPanel data={channelRanking} />
       {/* ── Sección 1: Ranking de creadores ──────────────────────────── */}
       <section className="space-y-3">
         <h2 className="text-[11px] font-semibold uppercase tracking-[0.2em] text-sp-admin-muted">

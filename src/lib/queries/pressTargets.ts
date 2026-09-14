@@ -1,6 +1,6 @@
-import { desc, eq } from 'drizzle-orm';
+import { and, desc, eq, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { pressTargets } from '@/db/schema';
+import { posts, pressTargets } from '@/db/schema';
 import type { PressTarget, PressTargetOutreachStatus } from '@/types';
 
 /**
@@ -9,6 +9,14 @@ import type { PressTarget, PressTargetOutreachStatus } from '@/types';
  */
 export async function getAllPressTargets(): Promise<PressTarget[]> {
   return db.select().from(pressTargets).orderBy(desc(pressTargets.updatedAt));
+}
+
+/** Internal editorial drafts, never a public publication queue. */
+export async function getPressDrafts(): Promise<Array<Pick<typeof posts.$inferSelect, 'id' | 'title' | 'excerpt' | 'bodyMd'>>> {
+  return db.select({ id: posts.id, title: posts.title, excerpt: posts.excerpt, bodyMd: posts.bodyMd })
+    .from(posts)
+    .where(and(eq(posts.status, 'draft'), sql`${posts.tags} @> '["prensa"]'::jsonb`))
+    .orderBy(desc(posts.updatedAt));
 }
 
 /**

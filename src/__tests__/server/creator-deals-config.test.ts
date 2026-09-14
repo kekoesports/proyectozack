@@ -50,7 +50,9 @@ describe('[creator-deals-config] roster y datos', () => {
 
   it('huasopeek / jolu → sin deals confirmados ([])', () => {
     expect(CREATOR_DEALS.huasopeek).toEqual([]);
-    expect(CREATOR_DEALS.jolu).toEqual([]);
+    expect(CREATOR_DEALS.jolucs2).toEqual(['keydrop']);
+    expect(CREATOR_DEALS.orroxx).toEqual(['keydrop']);
+    expect(CREATOR_DEALS.jospo).toEqual(['keydrop']);
   });
 
   it('martinez retirado — no aparece ni en el roster ni en la config', () => {

@@ -22,9 +22,9 @@ const SLUG_TYPO_REDIRECTS: Record<string, string> = {
   todo: 'todocs2',
   todocs: 'todocs2',
   'todo-cs2': 'todocs2',
-  jolucs2: 'jolu',
-  jolucs: 'jolu',
-  'jolu-cs2': 'jolu',
+  jolu: 'jolucs2',
+  jolucs: 'jolucs2',
+  'jolu-cs2': 'jolucs2',
   imantao: 'imantado',
   imanta: 'imantado',
   // Roster antiguo (martinez retirado 2026-07-03): quien aterrice en la

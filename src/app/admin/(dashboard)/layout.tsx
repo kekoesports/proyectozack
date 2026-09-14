@@ -1,7 +1,10 @@
-import { headers } from 'next/headers';
 import { env } from '@/lib/env';
 import type { Metadata } from 'next';
 import { requireAnyRole } from '@/lib/auth-guard';
+import { headers } from 'next/headers';
+import { auth } from '@/lib/auth';
+import { needsTwoFactorEnrollment } from '@/lib/security/two-factor-enrollment';
+import { TwoFactorEnrollmentDialog } from '@/features/admin/_shared/components/TwoFactorEnrollmentDialog';
 import { getDashboardAlerts, getActiveTrackerCompletedAlerts } from '@/lib/queries/alerts';
 import { AdminSidebar } from '@/features/admin/_shared/components/AdminSidebar';
 import type { AdminSidebarBranding } from '@/features/admin/_shared/components/AdminSidebar';
@@ -55,6 +58,7 @@ const NAV_ICONS: Record<AdminNavKey, React.ReactNode> = {
   'automation-drafts': <DealsIcon />,
   leads: <ContactIcon />,
   'creator-applications': <TalentIcon />,
+  captacion: <ContactIcon />,
   tareas: <TasksIcon />,
   facturacion: <InvoiceIcon />,
   finanzas: <ChartIcon />,
@@ -98,8 +102,14 @@ export default async function AdminLayout({ children }: AdminLayoutProps): Promi
       } satisfies AdminSidebarBranding
     : null;
   const isStaff = session.user.role === 'staff';
-  const quickNotesEnabled = env.QUICK_NOTES_ENABLED && canUseQuickNotes(session.user.role);
+  if (needsTwoFactorEnrollment(session.user.id, false)) {
+    const current = await auth.api.getSession({ headers: await headers() });
+    if (current && needsTwoFactorEnrollment(current.user.id, current.user.twoFactorEnabled === true)) {
+      return <main className="min-h-screen bg-sp-admin-bg"><TwoFactorEnrollmentDialog email={current.user.email} /></main>;
+    }
+  }
 
+  const quickNotesEnabled = env.QUICK_NOTES_ENABLED && canUseQuickNotes(session.user.role);
   const { primary, more: allMore } = navForRole(session.user.role);
   const more = allMore.filter((item) => (item.key !== 'studio' || (env.STUDIO_ENABLED && !isKekoPilot)) && (item.key !== 'notas' || quickNotesEnabled));
   const primaryNav = primary.map((item) => ({

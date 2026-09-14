@@ -6,6 +6,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import AuthCard from '@/components/ui/AuthCard';
 import type { PanelBranding } from '@/features/kekopilot-panel/data';
 import { homeForRole } from '@/lib/home-for-role';
+import { AuthActionResponse, AuthSessionResponse } from '@/lib/schemas/admin-auth';
 
 type StaffLoginProps = {
   readonly panelBranding?: PanelBranding;
@@ -29,14 +30,11 @@ export function StaffLogin({ panelBranding, variant = 'socialpro' }: StaffLoginP
       const res = await fetch('/api/auth/sign-in/email', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
       });
 
-      const data = await res.json().catch(() => null) as {
-        twoFactorRedirect?: boolean;
-        message?: string;
-        error?: string;
-      } | null;
+      const parsed = AuthActionResponse.safeParse(await res.json().catch(() => null));
+      const data = parsed.success ? parsed.data : null;
 
       if (res.ok) {
         if (data?.twoFactorRedirect === true) {
@@ -55,10 +53,8 @@ export function StaffLogin({ panelBranding, variant = 'socialpro' }: StaffLoginP
         try {
           const sessionRes = await fetch('/api/auth/get-session');
           if (sessionRes.ok) {
-            const session = (await sessionRes.json()) as {
-              user?: { role?: string | null };
-            };
-            dest = homeForRole(session.user?.role) ?? '/admin';
+            const session = AuthSessionResponse.safeParse(await sessionRes.json());
+            if (session.success) dest = homeForRole(session.data.user?.role) ?? '/admin';
           }
         } catch {
           // Fall back to /admin; requirePermission will re-home if needed.
@@ -66,7 +62,9 @@ export function StaffLogin({ panelBranding, variant = 'socialpro' }: StaffLoginP
         router.refresh();
         router.push(dest);
       } else {
-        setError(data?.message ?? data?.error ?? 'Credenciales incorrectas');
+        setError(data?.code === 'INVALID_EMAIL_OR_PASSWORD'
+          ? 'Email o contraseña incorrectos. Revisa los datos o utiliza «¿Olvidaste tu contraseña?».'
+          : data?.message ?? data?.error ?? 'Credenciales incorrectas');
       }
     } catch {
       setError('Error de red');

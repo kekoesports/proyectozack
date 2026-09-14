@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { CONTACT_PHONE } from '@/lib/utils/constants';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import { ServicesSection } from '@/features/marketing-site/components/ServicesSection';
@@ -91,7 +92,7 @@ const professionalServiceJsonLd = {
   description:
     'Agencia especializada en performance influencer marketing gaming, esports e iGaming. Streamers de CS2, Valorant, Twitch y YouTube en España y LatAm.',
   url: `${SITE_URL}/servicios`,
-  telephone: '+34-604-868-426',
+  telephone: CONTACT_PHONE,
   email: 'marketing@socialpro.es',
   priceRange: '$$',
   areaServed: [

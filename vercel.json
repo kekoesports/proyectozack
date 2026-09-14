@@ -2,6 +2,7 @@
   "git": {
     "deploymentEnabled": {
       "master": false,
+      "codex/whatsapp-recovery-20260913": false,
       "stabilize/socialpro-2026-09-05": false
     }
   },

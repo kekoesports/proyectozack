@@ -1,0 +1,69 @@
+import type { IntakeKnowledgeTopic } from '@/lib/schemas/intakeKnowledge';
+
+// Reviewed public facts and owner-approved policy. Never load CRM/Drive history into this catalog.
+export const INTAKE_KNOWLEDGE_VERSION = 'socialpro-2026-09-10-v5';
+type KnowledgeEntry = { topic: IntakeKnowledgeTopic; question: string; answer: string; source: string };
+export const INTAKE_KNOWLEDGE: readonly KnowledgeEntry[] = [
+  { topic: 'agency', question: 'Qué es SocialPro, especialidad e intereses de la agencia',
+    answer: 'SocialPro es una agencia de marketing y gestión de talento especializada en gaming, esports e iGaming. Conectamos creadores con marcas y trabajamos especialmente en España y Latinoamérica. Nuestro foco de captación actual es CS2 y casino, además de una línea propia de TikTok LIVE.',
+    source: 'https://socialpro.es/nosotros · decisiones del propietario, septiembre 2026' },
+  { topic: 'creator_services', question: 'Qué ofrecéis a un creador o streamer, representación y campañas',
+    answer: 'Ayudamos a creadores con representación, búsqueda y gestión de colaboraciones con marcas, coordinación de campañas y desarrollo de su actividad. También trabajamos gestión de canales de YouTube. El equipo revisa el perfil y acuerda personalmente el alcance de cada colaboración.',
+    source: 'https://socialpro.es/servicios · .agents/product-marketing.md' },
+  { topic: 'brand_services', question: 'Servicios para marcas y anunciantes, cómo se ejecuta una campaña',
+    answer: 'Para marcas, trabajamos la selección de creadores, el briefing y la estrategia, la coordinación del contenido y la publicación, el seguimiento de resultados y el informe de campaña. Nos interesan las audiencias adecuadas para el producto y los resultados medibles, además del alcance.',
+    source: 'https://socialpro.es/servicios' },
+  { topic: 'youtube', question: 'Gestión de YouTube, canales y contenido',
+    answer: 'SocialPro también ofrece gestión de canales de YouTube, con trabajo editorial, coordinación de producción y desarrollo del canal. Para valorar tu caso necesitamos el enlace del canal y qué parte de la gestión buscas delegar; el equipo confirma después el servicio y sus condiciones.',
+    source: '.agents/product-marketing.md · src/app/servicios/page.tsx' },
+  { topic: 'main_fit', question: 'Requisitos de viewers, porcentaje CS2/casino, rentabilidad y foco principal',
+    answer: 'Nuestro foco principal parte de al menos 100 espectadores de media en directo y un 30% o más de contenido CS2 o casino, contando cada publicación solo una vez. Ese encaje facilita presentar el perfil a nuestras marcas prioritarias; no garantiza campañas ni ingresos. También podemos valorar otras marcas.',
+    source: 'Decisión explícita del propietario en esta conversación' },
+  { topic: 'tiktok_fit', question: 'TikTok LIVE, batallas, media mínima y si necesita hacer casino o CS2',
+    answer: 'Para la línea de TikTok nos interesan perfiles que hagan LIVE y batallas con más de 30 espectadores de media. Pueden encajar solo en TikTok aunque no hagan CS2 o casino; no se les exige el umbral de 100 espectadores de la otra línea. El equipo revisa cada candidatura.',
+    source: 'Decisión explícita del propietario en esta conversación' },
+  { topic: 'other_profiles', question: 'No cumplo requisitos, canal pequeño, otros contenidos o sectores',
+    answer: 'Si no alcanzas esos criterios o tu contenido es diferente, podemos guardar tu candidatura y valorar oportunidades con otras marcas. No es nuestro foco principal, pero no supone un descarte automático. Cuéntanos tus redes, contenido y métricas para revisarlo.',
+    source: 'Decisión explícita del propietario en esta conversación' },
+  { topic: 'metrics', question: 'Qué métricas cuentan, periodo, seguidores, picos, prueba o porcentajes',
+    answer: 'Para valorar tu perfil necesitamos capturas o un informe de los últimos 30 días, según tus redes. En Twitch y Kick: stats de los últimos 30 días y GEO stats. Las GEO stats muestran los países de tu audiencia. En Instagram: visualizaciones de historias y reels dentro de las estadísticas de contenido, y GEO stats. En YouTube: visualizaciones del contenido y países de tu audiencia. En TikTok: estadísticas de contenido, audiencia y directos si los haces. Puedes enviarlo en varios mensajes por este chat. Un compañero revisará la información; recibir archivos o cifras no significa que estén verificados. Si no puedes obtener las estadísticas, el equipo puede orientarte.',
+    source: 'Decisión explícita del propietario, 2026-09-10: redes, estadísticas de 30 días y revisión personal' },
+  { topic: 'onboarding', question: 'Cómo entrar, cómo presentar candidatura y siguientes pasos',
+    answer: 'Compártenos tus redes más activas. A continuación te pedimos las estadísticas de contenido y GEO stats de los últimos 30 días que correspondan a esas redes. Con esa información un compañero puede valorar tu perfil y continuar contigo. En este primer paso no te pedimos nombre, alias, país ni mayoría de edad, ni un cuestionario de preferencias. No envíes documentos de identidad ni contraseñas.',
+    source: 'Nuevo flujo solicitado por el propietario el 2026-09-10; sustituye el cuestionario anterior' },
+  { topic: 'markets', question: 'Países, España, Latinoamérica y plataformas de creadores',
+    answer: 'Nuestro mercado principal es España y Latinoamérica. Trabajamos con creadores de Twitch, YouTube, Kick, Instagram y TikTok. Cuéntanos desde qué país creas contenido y dónde está tu audiencia para valorar el encaje con cada marca.',
+    source: 'https://socialpro.es/nosotros · .agents/product-marketing.md' },
+  { topic: 'team', question: 'Quién está detrás, Keko, Zack y equipo',
+    answer: 'Pablo Camacho, Keko, es el CEO de SocialPro y trabaja la estrategia gaming y el desarrollo de negocio. Alfonso Arias, Zack, dirige las relaciones con talentos. Daniel Atomik trabaja contenido y comunidad. Puedes conocer al equipo en https://socialpro.es/nosotros. Yo soy el asistente de la agencia; puedes pedir atención personal en cualquier momento.',
+    source: 'https://socialpro.es/nosotros, comprobado el 2026-09-10' },
+  { topic: 'contact', question: 'Web, email, teléfono o Telegram de contacto',
+    answer: 'La web es https://socialpro.es, el correo es marketing@socialpro.es y el teléfono de empresa es +34 684 483 595. En Telegram estamos en @SocialProAgencia. También puedes seguir en este mismo chat y pedir que continúe una persona del equipo.',
+    source: 'Contacto público y configuración de empresa verificados el 2026-09-10' },
+  { topic: 'portfolio', question: 'Qué marcas, clientes, casos o creadores tiene la agencia',
+    answer: 'Puedes consultar los casos públicos en https://socialpro.es/casos y la selección de creadores en https://socialpro.es/talentos. En nuestra web aparecen marcas como KeyDrop, Skin.Club, CSGOSKINS y Razer. Que una marca figure allí no significa que tenga una oferta abierta ahora; el equipo confirma la disponibilidad de cada campaña.',
+    source: 'https://socialpro.es/nosotros · enlaces públicos, no ofertas privadas de Drive' },
+  { topic: 'conditions', question: 'Tarifas, comisiones, exclusividad, contratos, pagos o garantías',
+    answer: 'Las tarifas, comisiones, exclusividad, pagos y condiciones se acuerdan con el equipo para cada caso. No puedo confirmar importes, aceptar contratos ni prometer campañas o ingresos. Te paso con una persona para revisar tu propuesta.',
+    source: 'Límites comerciales de la captación autorizada' },
+  { topic: 'privacy', question: 'Uso de datos, privacidad, acceso a chats y eliminación',
+    answer: 'Usamos los datos que compartes en esta conversación para valorar tu candidatura y atenderte. Puedes consultar https://socialpro.es/privacidad. No envíes contraseñas ni documentos de identidad. Si quieres ejercer un derecho sobre tus datos, te pongo en contacto con el equipo; no confirmaré una eliminación que no se haya realizado.',
+    source: 'Aviso de captación autorizado · https://socialpro.es/privacidad' },
+  { topic: 'brand_brief', question: 'Soy una marca, quiero contratar creadores o lanzar una campaña',
+    answer: 'Para preparar una propuesta, indícanos tu marca o web, producto, países objetivo, qué resultado buscas, fechas y presupuesto orientativo si lo tienes. El equipo comercial seleccionará los perfiles adecuados y continuará contigo. Los requisitos de espectadores son para creadores, no para una marca que nos contacta.',
+    source: 'https://socialpro.es/servicios · https://socialpro.es/contacto' },
+  { topic: 'compliance', question: 'Casino, apuestas, edad, regulación o autorización para una campaña',
+    answer: 'El encaje comercial no equivale a una autorización para publicar una campaña de juego. El equipo debe revisar la edad, la audiencia, el mercado, la marca y las condiciones aplicables antes de avanzar. Las dudas normativas concretas requieren revisión personal.',
+    source: 'Límite de revisión humana; sin asesoramiento normativo automático' },
+];
+
+export function intakeKnowledgeAnswer(topics: readonly IntakeKnowledgeTopic[]): string {
+  return [...new Set(topics)].slice(0, 3).map((topic) => INTAKE_KNOWLEDGE.find((entry) => entry.topic === topic)?.answer ?? '').filter(Boolean).join('\n\n');
+}
+
+export const INTAKE_KNOWLEDGE_PROMPT = INTAKE_KNOWLEDGE
+  .map(({ topic, question, answer }) => `${topic}: ${question}\n${answer}`).join('\n\n');
+
+export function knowledgeRequiresHuman(topics: readonly IntakeKnowledgeTopic[]): boolean {
+  return topics.some((topic) => ['conditions', 'brand_brief', 'compliance'].includes(topic));
+}

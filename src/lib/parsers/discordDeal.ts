@@ -39,6 +39,8 @@
 import { CAMPAIGN_STATUSES, type CampaignStatus } from '@/lib/schemas/campaign';
 import { type DeliverableType } from '@/lib/schemas/deliverable';
 import { SOCIAL_PLATFORM_VALUES } from '@/lib/schemas/talentSocials';
+import { parseInlineDiscordDeal } from '@/lib/parsers/discordDealInline';
+import { parseParagraphDiscordDeal, unrecognizedDiscordDeal } from '@/lib/parsers/discordDealParagraph';
 
 type SocialPlatform = (typeof SOCIAL_PLATFORM_VALUES)[number];
 
@@ -220,6 +222,8 @@ function compactDealLine(line: string, brand: string): DiscordDealParseResult | 
  * una línea por creador. Un mensaje puede producir varios borradores.
  */
 export function parseDiscordDealEntries(rawText: string): readonly DiscordDealParseResult[] {
+  const inline = parseInlineDiscordDeal(rawText);
+  if (inline) return [inline];
   const compactLines = rawText
     .split(/\r?\n/)
     .map((line) => line.trim())
@@ -231,7 +235,10 @@ export function parseDiscordDealEntries(rawText: string): readonly DiscordDealPa
       return entries.filter((entry): entry is DiscordDealParseResult => entry !== null);
     }
   }
-  return [parseDiscordDealMessage(rawText)];
+  const paragraph = parseParagraphDiscordDeal(rawText);
+  if (paragraph) return [paragraph];
+  const legacy = parseDiscordDealMessage(rawText);
+  return [legacy.looksLikeDeal ? legacy : unrecognizedDiscordDeal(rawText) ?? legacy];
 }
 
 /** Plataforma implícita en los entregables. Sin señal clara, no se inventa. */

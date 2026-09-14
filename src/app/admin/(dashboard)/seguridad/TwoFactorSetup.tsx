@@ -3,28 +3,23 @@
 import { useEffect, useMemo, useState } from 'react';
 import Image from 'next/image';
 import QRCode from 'qrcode';
-
-type SetupResponse = {
-  readonly totpURI: string;
-  readonly backupCodes: readonly string[];
-};
+import { AuthActionResponse, TwoFactorSetupResponse } from '@/lib/schemas/admin-auth';
 
 function responseMessage(data: unknown, fallback: string): string {
-  if (!data || typeof data !== 'object') return fallback;
-  const candidate = data as { message?: unknown; error?: unknown };
-  if (typeof candidate.message === 'string') return candidate.message;
-  if (typeof candidate.error === 'string') return candidate.error;
+  const candidate = AuthActionResponse.safeParse(data);
+  if (candidate.success) return candidate.data.message ?? candidate.data.error ?? fallback;
   return fallback;
 }
 
 export function TwoFactorSetup(props: {
   readonly email: string;
   readonly initiallyEnabled: boolean;
+  readonly onVerified?: () => void;
 }): React.ReactElement {
   const [enabled, setEnabled] = useState(props.initiallyEnabled);
   const [password, setPassword] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
-  const [setup, setSetup] = useState<SetupResponse | null>(null);
+  const [setup, setSetup] = useState<TwoFactorSetupResponse | null>(null);
   const [qrDataUrl, setQrDataUrl] = useState('');
   const [error, setError] = useState('');
   const [notice, setNotice] = useState('');
@@ -40,6 +35,7 @@ export function TwoFactorSetup(props: {
   }, [setup]);
 
   useEffect(() => {
+    // WHY: QRCode is an imperative third-party renderer; cancel stale completions.
     if (!setup) {
       setQrDataUrl('');
       return;
@@ -69,13 +65,14 @@ export function TwoFactorSetup(props: {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ password, issuer: 'SocialPro CRM' }),
       });
-      const data = await response.json().catch(() => null) as SetupResponse | null;
-      if (!response.ok || !data?.totpURI || !Array.isArray(data.backupCodes)) {
+      const data: unknown = await response.json().catch(() => null);
+      const parsed = TwoFactorSetupResponse.safeParse(data);
+      if (!response.ok || !parsed.success) {
         setError(responseMessage(data, 'No se pudo iniciar la configuración. Comprueba tu contraseña.'));
         return;
       }
       setPassword('');
-      setSetup(data);
+      setSetup(parsed.data);
       setNotice('Escanea el QR y confirma un código para terminar. El 2FA todavía no está activo.');
     } catch {
       setError('No se pudo conectar con el servicio de autenticación.');
@@ -100,6 +97,7 @@ export function TwoFactorSetup(props: {
         return;
       }
       setEnabled(true);
+      props.onVerified?.();
       setVerificationCode('');
       setNotice('Verificación en dos pasos activada. Guarda ahora los códigos de recuperación.');
     } catch {
@@ -173,7 +171,6 @@ export function TwoFactorSetup(props: {
               onChange={(event) => setPassword(event.target.value)}
               autoComplete="current-password"
               required
-              minLength={12}
               className="w-full rounded-lg border border-sp-border bg-sp-admin-bg px-3 py-2.5 text-sm outline-none focus:border-sp-orange"
             />
           </div>

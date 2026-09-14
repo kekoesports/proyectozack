@@ -63,7 +63,7 @@ jest.mock('@/lib/integrations/google-sheets', () => ({
 }));
 
 // DB select chain mock — devuelve listas de trackers y de sources.
-let mockTrackersList: { id: number }[] = [];
+let mockTrackersList: { id: number; sourceId?: number }[] = [];
 let mockActiveSourcesList: { id: number }[] = [];
 
 jest.mock('@/db/schema/dealDeliverableTrackers', () => ({ dealDeliverableTrackers: { id: 'id', brandSheetSourceId: 'brandSheetSourceId' } }));
@@ -118,7 +118,8 @@ describe('cron /api/cron/sync-sheet-sources — contrato', () => {
 
     const res = await cronGET(makeReq());
     const json = await res.json() as Record<string, unknown>;
-    expect(json.success).toBe(true);
+    expect(json.success).toBe(false);
+    expect(res.status).toBe(503);
     expect(json.total).toBe(3);
     expect(json.ok).toBe(2);
     expect(json.failed).toBe(1);
@@ -174,6 +175,34 @@ describe('cron /api/cron/sync-sheet-sources — contrato', () => {
     expect(mockSyncTrackerBlock).toHaveBeenCalledWith(7, expect.objectContaining({
       metadataFetcher: expect.any(Function) as unknown,
     }));
+  });
+
+  it('solo marca fresca la fuente cuyos trackers se han leído por completo', async () => {
+    mockTrackersList = [{ id: 1, sourceId: 10 }, { id: 2, sourceId: 10 }, { id: 3, sourceId: 20 }];
+    mockActiveSourcesList = [{ id: 10 }, { id: 20 }, { id: 30 }];
+    mockSyncTrackerBlock.mockImplementation((id: number) => Promise.resolve(id === 2
+      ? { error: 'unavailable' } : { inserted: 0 }));
+    const res = await cronGET(makeReq());
+    expect(res.status).toBe(503);
+    expect(mockUpdateSheetSourceTimestamps).toHaveBeenCalledTimes(1);
+    expect(mockUpdateSheetSourceTimestamps).toHaveBeenCalledWith(20, { lastSyncedAt: expect.any(Date) });
+  });
+
+  it('marca fresca una fuente con todos sus trackers correctos aunque no haya novedades', async () => {
+    mockTrackersList = [{ id: 1, sourceId: 10 }, { id: 2, sourceId: 10 }];
+    mockActiveSourcesList = [{ id: 10 }];
+    mockSyncTrackerBlock.mockResolvedValue({ inserted: 0 });
+    const res = await cronGET(makeReq());
+    expect(res.status).toBe(200);
+    expect(mockUpdateSheetSourceTimestamps).toHaveBeenCalledWith(10, { lastSyncedAt: expect.any(Date) });
+  });
+
+  it('no oculta el fallo al guardar la fecha de sincronización', async () => {
+    mockTrackersList = [{ id: 1, sourceId: 10 }];
+    mockActiveSourcesList = [{ id: 10 }];
+    mockSyncTrackerBlock.mockResolvedValue({ inserted: 0 });
+    mockUpdateSheetSourceTimestamps.mockRejectedValue(new Error('write-failed'));
+    expect((await cronGET(makeReq())).status).toBe(500);
   });
 });
 

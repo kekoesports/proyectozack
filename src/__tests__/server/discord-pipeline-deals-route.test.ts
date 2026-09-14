@@ -12,6 +12,11 @@ const verifyAutomationToken = jest.fn();
 const findAutomationDealDraftByExternalId = jest.fn();
 const createAutomationDealDraft = jest.fn();
 const ingestAgentEvent = jest.fn();
+const completePipelineDeal = jest.fn();
+
+jest.mock('@/lib/queries/completePipelineDeal', () => ({
+  completePipelineDeal: (...args: unknown[]) => completePipelineDeal(...args),
+}));
 
 jest.mock('@/lib/security/assertAutomationAuth', () => ({
   verifyAutomationToken: (req: Request) => verifyAutomationToken(req),
@@ -68,6 +73,7 @@ beforeEach(() => {
     id: 7, created: true, status: 'pending_review', missingFields: [],
   });
   ingestAgentEvent.mockResolvedValue({ event: { id: 91 }, deduplicated: false });
+  completePipelineDeal.mockResolvedValue({ status: 'pending_review', warnings: [] });
 });
 
 describe('auth', () => {
@@ -135,6 +141,18 @@ describe('idempotencia', () => {
 });
 
 describe('procesado', () => {
+  it('completa un trato inequívoco y devuelve el estado persistido', async () => {
+    completePipelineDeal.mockResolvedValue({ status: 'created', campaignId: 93, warnings: [] });
+    const response = await POST(req({ messages: [mensaje('123456789012345678')] }));
+    expect(completePipelineDeal).toHaveBeenCalledWith(7, []);
+    expect((await response.json()).outcomes[0].status).toBe('created');
+  });
+
+  it('pasa los avisos al guard de revisión antes de completar', async () => {
+    await POST(req({ messages: [mensaje('123456789012345678', MENSAJE.replace('@thereelfer', '@HANDLE_EXACTO'))] }));
+    expect(completePipelineDeal).toHaveBeenCalledWith(7, expect.arrayContaining([expect.stringMatching(/handle/i)]));
+  });
+
   it('crea el borrador con lo extraído del mensaje', async () => {
     const res = await POST(req({ messages: [mensaje('123456789012345678')] }));
     expect(res.status).toBe(200);
@@ -171,6 +189,7 @@ describe('procesado', () => {
   });
 
   it('devuelve los avisos del parser para quien revise', async () => {
+    completePipelineDeal.mockResolvedValue({ status: 'missing_info', warnings: [], missingFields: ['talent.handle'] });
     createAutomationDealDraft.mockResolvedValue({
       id: 3, created: true, status: 'missing_info', missingFields: ['talent.handle'],
     });

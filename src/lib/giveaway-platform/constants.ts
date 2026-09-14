@@ -17,18 +17,21 @@ export const ADULT_ATTESTATION_VERSION = '2026-07';
  * Slugs de talents visibles en el selector de creador de la plataforma.
  *
  * Actualizado 2026-07-03: sale `martinez`, entran `todocs2`, `imantado`,
- * `jolu` (slug DB real; display "JoluCS2"). Los partners de cada creador
+ * `jolucs2` (slug DB verificado 2026-09-10; display "JOLU"). Los partners de cada creador
  * viven en `src/features/giveaway-platform/constants/creator-deals.ts`
  * — un creador puede aparecer aquí (roster público) y aún no tener deals
  * confirmados; en ese caso su landing muestra el placeholder honesto.
  */
 export const PLATFORM_CREATOR_SLUGS = [
   'zacketizor',
+  'curlydidsaster',
   'huasopeek',
   'naow',
   'todocs2',
   'imantado',
-  'jolu',
+  'jolucs2',
+  'orroxx',
+  'jospo',
   'eruby',
 ] as const;
 

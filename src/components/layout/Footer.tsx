@@ -1,10 +1,10 @@
 'use client';
 
 import Link from 'next/link';
-import { AGENCY_SOCIALS } from '@/lib/agency-socials';
 import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { WA_HREF, CONTACT_EMAIL } from '@/lib/utils/constants';
+import { AGENCY_SOCIALS } from '@/lib/agency-socials';
 import { localeFromPathname, type Locale } from '@/lib/locale';
 import { openConsentBanner } from '@/lib/consent/consentStore';
 import { ESTADISTICAS_NOINDEX } from '@/lib/feature-flags';

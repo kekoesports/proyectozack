@@ -9,8 +9,8 @@
  * los mismos mensajes en cada pasada, y sin ese corte se repetiría el trabajo
  * de extracción unas 96 veces al día por mensaje.
  *
- * Este endpoint NO crea campañas: deja borradores para que alguien los revise.
- * Nunca toca `campaigns` ni dispara sincronizaciones.
+ * Los mensajes inequívocos del canal interno completan el trato y su Sheet.
+ * Los conflictos quedan en revisión; nunca genera contratos ni facturas.
  */
 import { NextResponse } from 'next/server';
 
@@ -20,6 +20,7 @@ import {
   findAutomationDealDraftByExternalId,
 } from '@/lib/queries/automationDealDrafts';
 import { ingestAgentEvent } from '@/lib/queries/agents/events';
+import { completePipelineDeal } from '@/lib/queries/completePipelineDeal';
 import {
   DiscordPipelineDealsIntake,
   discordExternalId,
@@ -106,6 +107,11 @@ export async function POST(req: Request): Promise<NextResponse> {
           result: 'already_seen',
           draftId: seen.id,
           status: seen.status,
+          warnings: seen.error ? [seen.error === 'pipeline-sheet-pending'
+            ? 'Trato guardado; falta crear la hoja de seguimiento.'
+            : seen.error === 'pipeline-sharing-pending'
+              ? 'Trato y hoja guardados; falta revisar el email o los permisos del creador.'
+              : 'El borrador tiene datos pendientes de revisión en el CRM.'] : [],
         });
         continue;
       }
@@ -163,12 +169,15 @@ export async function POST(req: Request): Promise<NextResponse> {
               });
             }
           }
+          const completion = draft.created
+            ? await completePipelineDeal(draft.id, extraction.warnings)
+            : null;
           entryOutcomes.push({
             result: draft.created ? 'created' : 'already_seen',
             draftId: draft.id,
-            status: draft.status,
-            missingFields: draft.missingFields,
-            warnings: extraction.warnings,
+            status: completion?.status ?? draft.status,
+            missingFields: completion?.missingFields ?? (completion?.status === 'created' ? [] : draft.missingFields),
+            warnings: [...extraction.warnings, ...(completion?.warnings ?? [])],
           });
         } catch (error) {
           console.error('[pipeline-deals] fallo procesando una entrada', {

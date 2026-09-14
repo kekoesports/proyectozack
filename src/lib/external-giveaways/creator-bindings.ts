@@ -32,6 +32,26 @@ export interface CreatorBinding {
  * Los slugs deben estar en `PLATFORM_CREATOR_SLUGS`.
  */
 const BINDINGS: Record<string, CreatorBinding> = {
+  curlydidsaster: {
+    provider: 'keydrop',
+    envKey: 'KEYDROP_CURLYDISASTER_API_KEY',
+    apiKey: () => env.KEYDROP_CURLYDISASTER_API_KEY,
+  },
+  orroxx: {
+    provider: 'keydrop',
+    envKey: 'KEYDROP_ORROXX_API_KEY',
+    apiKey: () => env.KEYDROP_ORROXX_API_KEY,
+  },
+  jolucs2: {
+    provider: 'keydrop',
+    envKey: 'KEYDROP_JOLU_API_KEY',
+    apiKey: () => env.KEYDROP_JOLU_API_KEY,
+  },
+  jospo: {
+    provider: 'keydrop',
+    envKey: 'KEYDROP_JOSPO_API_KEY',
+    apiKey: () => env.KEYDROP_JOSPO_API_KEY,
+  },
   zacketizor: {
     provider: 'keydrop',
     envKey: 'KEYDROP_ZACKETIZOR_API_KEY',

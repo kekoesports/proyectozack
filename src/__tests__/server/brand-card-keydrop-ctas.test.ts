@@ -92,12 +92,12 @@ describe('[brand-card-keydrop] CSS de reset del ancla-CTA', () => {
   });
 });
 
-describe('[brand-card-keydrop] ZACKETIZOR → ZACKCSGO', () => {
-  it('el creator ZACKETIZOR tiene `code: ZACKCSGO` en creators.ts', () => {
+describe('[brand-card-keydrop] ZACKETIZOR → ZACK (publicado 2026-09-11)', () => {
+  it('el creator ZACKETIZOR tiene el código público vigente en creators.ts', () => {
     // El `code` que recibe BrandCardKeyDrop sale de aquí. Aseguramos que
     // el mapeo no se pierda por refactor.
     const creatorsSrc = read('src/features/giveaway-platform/constants/creators.ts');
-    expect(creatorsSrc).toMatch(/zacketizor:\s*\{[^}]*code:\s*'ZACKCSGO'/);
+    expect(creatorsSrc).toMatch(/zacketizor:\s*\{[^}]*code:\s*'ZACK'/);
   });
 });
 

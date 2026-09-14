@@ -254,7 +254,7 @@ export function CampaignSummaryCard({ campaign }: Props): React.ReactElement {
             label="Marca"
             value={
               <Link
-                href={`/admin/marcas/${campaign.brandId}`}
+                href={`/admin/brands/${campaign.brandId}`}
                 className="text-sp-admin-accent hover:underline"
               >
                 {campaign.brand.name}

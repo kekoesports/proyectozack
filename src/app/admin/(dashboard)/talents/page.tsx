@@ -1,5 +1,5 @@
 ﻿import Link from 'next/link';
-import { requirePermission } from '@/lib/permissions';
+import { requirePermission, canDelete } from '@/lib/permissions';
 import { AdminPageHeader } from '@/features/admin/_shared/components/AdminPageHeader';
 import {
   getAdminRosterWithGrowth,
@@ -139,6 +139,7 @@ export default async function AdminTalentsPage({
               <InfluencerCardsView
                 creators={creators}
                 verticalsByTalent={verticalsByTalent}
+                canRevoke={canDelete(session.user.role)}
               />
             ),
           },
