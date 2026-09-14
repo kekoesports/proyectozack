@@ -4,7 +4,7 @@ import { headers } from 'next/headers';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { AGENCY_SAME_AS } from '@/lib/agency-socials';
 import { isEnPathname } from '@/lib/en-routes';
-import { Inter, Barlow_Condensed } from 'next/font/google';
+import { inter, barlowCondensed } from '@/lib/fonts';
 import './globals.css';
 import { Nav } from '@/components/layout/Nav';
 import { Footer } from '@/components/layout/Footer';
@@ -16,20 +16,6 @@ import { ConsentedScripts } from '@/components/layout/ConsentedScripts';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { isKekoPilotHost } from '@/lib/kekopilot-url';
-
-const inter = Inter({
-  variable: '--font-body',
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-});
-
-const barlowCondensed = Barlow_Condensed({
-  variable: '--font-display',
-  subsets: ['latin'],
-  weight: ['400', '600', '700', '800', '900'],
-  display: 'swap',
-});
 
 export const metadata: Metadata = {
   title: {

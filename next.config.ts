@@ -232,6 +232,7 @@ const nextConfig: NextConfig = {
     ],
   },
   experimental: {
+    globalNotFound: true,
     // Studio accepts 20 MiB media + multipart headers. Next's default 10 MiB
     // proxy buffer silently truncates bigger bodies before the route validates them.
     // Caddy retains 12 MB elsewhere; Studio also enforces its own streamed cap.
