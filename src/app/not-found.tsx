@@ -23,7 +23,7 @@ const NAV_LINKS = [
  */
 export default function NotFound(): React.JSX.Element {
   return (
-    <div className="min-h-[60vh] flex flex-col items-center justify-center px-6 py-24 text-center">
+    <div className="min-h-[60vh] bg-sp-off flex flex-col items-center justify-center px-6 py-24 text-center">
       <p className="text-[11px] font-black uppercase tracking-[0.25em] text-sp-orange mb-4">
         Error 404
       </p>

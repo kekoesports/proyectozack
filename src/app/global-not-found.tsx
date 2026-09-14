@@ -12,7 +12,7 @@ export const metadata: Metadata = {
 export default function GlobalNotFound(): React.JSX.Element {
   return (
     <html lang="es">
-      <body className={`${inter.variable} ${barlowCondensed.variable} antialiased`}>
+      <body className={`${inter.variable} ${barlowCondensed.variable} bg-sp-off antialiased`}>
         <main><NotFound /></main>
       </body>
     </html>
