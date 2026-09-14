@@ -17,6 +17,10 @@ import { SpeedInsights } from '@vercel/speed-insights/next';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { isKekoPilotHost } from '@/lib/kekopilot-url';
 
+// Language and host routing require request headers, including when a generated
+// slug is absent. Do not let ISR fallback attempt to statically render this layout.
+export const dynamic = 'force-dynamic';
+
 export const metadata: Metadata = {
   title: {
     default: 'SocialPro | Agencia de Performance Marketing Gaming y Esports',
