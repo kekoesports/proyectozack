@@ -1,5 +1,6 @@
 import importlib.util, json, pathlib, sys, tempfile, time, unittest
 from unittest.mock import patch, Mock
+from urllib.parse import urlsplit
 
 sys.path.insert(0,str(pathlib.Path(__file__).parent))
 spec = importlib.util.spec_from_file_location('watchdog', pathlib.Path(__file__).with_name('watchdog.py'))
@@ -12,7 +13,7 @@ class WatchdogTests(unittest.TestCase):
         self.health['unanswered'] = 1
         watchdog.main()
         self.assertEqual(self.sent(), [])
-        self.assertFalse(any('api.telegram.org' in call[0] for call in self.calls))
+        self.assertFalse(any(urlsplit(call[0]).hostname == 'api.telegram.org' for call in self.calls))
         self.assertFalse(json.loads(watchdog.STATE.read_text())['telegram_notifications_enabled'])
         self.assertTrue(json.loads(watchdog.STATE.read_text())['issues'])
 
