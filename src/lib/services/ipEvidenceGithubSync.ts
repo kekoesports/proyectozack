@@ -13,7 +13,7 @@ const githubPullRequestSchema = z.object({
   merged_at: z.string().datetime().nullable(),
   merge_commit_sha: z.string().nullable(),
   user: z.object({ login: z.string() }).nullable(),
-  merged_by: z.object({ login: z.string() }).nullable(),
+  merged_by: z.object({ login: z.string() }).nullish(),
   head: z.object({ sha: z.string() }),
   base: z.object({ ref: z.string() }),
 });
@@ -53,6 +53,11 @@ async function fetchMergedPullRequests(repository: GithubRepository) {
   endpoint.searchParams.set('direction', 'desc');
   endpoint.searchParams.set('per_page', '100');
 
+  const merged: Array<z.infer<typeof githubPullRequestSchema> & { merged_at: string }> = [];
+  // A recently merged PR can have been created long ago. Read every page,
+  // rather than silently truncating evidence to the first hundred records.
+  for (let page = 1; page <= 20; page += 1) {
+  endpoint.searchParams.set('page', String(page));
   const response = await fetch(endpoint, {
     headers: {
       Accept: 'application/vnd.github+json',
@@ -63,11 +68,16 @@ async function fetchMergedPullRequests(repository: GithubRepository) {
     cache: 'no-store',
   });
   if (!response.ok) throw new Error(`github-pr-sync-http-${response.status}`);
-  return githubPullRequestsSchema.parse(await response.json()).flatMap((pullRequest) =>
+  const parsed = githubPullRequestsSchema.safeParse(await response.json());
+  if (!parsed.success) throw new Error('github-pr-sync-invalid-response');
+  merged.push(...parsed.data.flatMap((pullRequest) =>
     pullRequest.merged_at === null
       ? []
       : [{ ...pullRequest, merged_at: pullRequest.merged_at }],
-  );
+  ));
+  if (parsed.data.length < 100) return merged;
+  }
+  throw new Error('github-pr-sync-pagination-limit');
 }
 
 export async function syncGithubIpEvidence(): Promise<IpEvidenceSyncResult> {

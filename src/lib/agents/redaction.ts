@@ -1,4 +1,4 @@
-import { sanitizeToolOutput, truncateText } from '@/lib/services/ai-assistant/sanitize';
+import { sanitizeToolOutput, truncateText, maskIban, maskEmail, maskTaxId } from '@/lib/services/ai-assistant/sanitize';
 
 /**
  * Redacción de todo lo que sale del runtime: lo que se guarda en la timeline,
@@ -19,6 +19,15 @@ import { sanitizeToolOutput, truncateText } from '@/lib/services/ai-assistant/sa
 export const MAX_REDACTED_JSON_BYTES = 16_000;
 /** Tope de un mensaje de error. */
 export const MAX_ERROR_MESSAGE_CHARS = 500;
+
+/** Reports need more than the 400-character tool-field preview. Mask first. */
+export function redactReportSummary(value: string): string {
+  const masked = value
+    .replace(/[A-Z]{2}\d{2}[\s\d]{10,26}/g, (match) => maskIban(match))
+    .replace(/[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}/g, (match) => maskEmail(match))
+    .replace(/\b[A-Z]\d{7}[A-Z0-9]\b/g, (match) => maskTaxId(match));
+  return truncateText(masked, 2_000);
+}
 
 /**
  * Claves que se tachan enteras, además de las que ya cubre el asistente.

@@ -17,11 +17,22 @@ import { MAX_TOOL_CALLS_POR_TURNO, normalizeProviderTurn } from '@/lib/agents/mo
 import { NullAgentModelProvider } from '@/lib/agents/providers/null-provider';
 import {
   appendGeminiRequestMessages,
+  geminiFinishReason,
   createGeminiRequestGate,
   GEMINI_MIN_REQUEST_INTERVAL_MS,
   toolToFunctionDeclaration,
   type GeminiHistoryContent,
 } from '@/lib/agents/providers/gemini-provider';
+
+describe('Gemini completion boundary', () => {
+  it('distinguishes complete, partial, blocked and absent candidates', () => {
+    expect(geminiFinishReason('STOP', false)).toBe('stop');
+    expect(geminiFinishReason('STOP', true)).toBe('tool_calls');
+    expect(geminiFinishReason('MAX_TOKENS', true)).toBe('length');
+    expect(geminiFinishReason('SAFETY', false)).toBe('error');
+    expect(geminiFinishReason(undefined, false)).toBe('unknown');
+  });
+});
 
 describe('normalizeProviderTurn', () => {
   it('normaliza un turno correcto', () => {

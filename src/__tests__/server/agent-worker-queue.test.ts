@@ -238,7 +238,7 @@ describe('leases', () => {
 
 describe('política de reintentos', () => {
   it('reintenta lo transitorio con backoff', () => {
-    const d = decideRetry({ errorCode: 'provider_quota', attempt: 1, maxAttempts: 3, now: AHORA, aleatorio: 0 });
+    const d = decideRetry({ errorCode: 'provider_timeout', attempt: 1, maxAttempts: 3, now: AHORA, aleatorio: 0 });
     expect(d.kind).toBe('retry');
     if (d.kind === 'retry') {
       expect(d.delayMs).toBe(2_000);
@@ -267,6 +267,11 @@ describe('política de reintentos', () => {
       now: AHORA,
     });
     expect(d.kind).toBe('fail');
+  });
+
+  it.each([[1, 302_000], [2, 604_000]])('waits for quota recovery on attempt %i', (attempt, delayMs) => {
+    expect(decideRetry({ errorCode: 'provider_quota', attempt, maxAttempts: 3, now: AHORA, aleatorio: 0 }))
+      .toEqual({ kind: 'retry', delayMs, availableAt: new Date(AHORA.getTime() + delayMs) });
   });
 
   it('manda a dead-letter al agotar intentos', () => {

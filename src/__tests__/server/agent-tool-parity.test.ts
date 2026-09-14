@@ -70,9 +70,11 @@ describe('cobertura de las tools del asistente', () => {
       'getAgentQueueHealth',
       'getAgentWorkerHealth',
       'getDealDraftQueue',
+      'getDevelopmentEvidence',
       'getInboundLeadQueue',
       'getOpenOperationalIncidents',
       'getOperationalCampaignSummary',
+      'getSentryIssues',
       'getSeoOperationsSnapshot',
       'getSystemHealthSnapshot',
     ]);

@@ -101,6 +101,7 @@ export async function runAgentLoop(
   let turnos = 0;
   let llamadas = 0;
   let ultimoTexto = '';
+  let resumenReintentado = false;
 
   // El límite de vueltas del bucle es `maxTurns`, pero el `while (true)` con
   // salidas explícitas se lee peor y esconde el caso de "salió por arriba".
@@ -173,6 +174,29 @@ export async function runAgentLoop(
         provider: turno.provider,
         model: turno.model,
       });
+    }
+
+    // A partial response must not execute tools or masquerade as a finished report.
+    if (turno.finishReason === 'length') {
+      if (turno.toolCalls.length > 0 || resumenReintentado) {
+        return { status: 'stopped', reason: 'model_output_incomplete',
+          detail: 'El proveedor cortó la respuesta. Las evidencias previas siguen guardadas.', turns: turnos };
+      }
+      resumenReintentado = true;
+      mensajes.push({ role: 'assistant', content: turno.text });
+      mensajes.push({ role: 'user', content: 'La respuesta anterior quedó cortada. Reescribe el informe completo en un máximo de 1000 caracteres, usando solo las evidencias ya consultadas. No pidas nuevas herramientas ni inventes datos.' });
+      continue;
+    }
+    if (turno.finishReason === 'error' || turno.finishReason === 'unknown') {
+      return { status: 'stopped', reason: 'model_output_unverified',
+        detail: 'El proveedor no confirmó una respuesta completa.', turns: turnos };
+    }
+    if (resumenReintentado && turno.toolCalls.length > 0) {
+      return { status: 'stopped', reason: 'model_output_incomplete',
+        detail: 'La recuperación del informe no permite nuevas herramientas.', turns: turnos };
+    }
+    if (turno.toolCalls.length === 0 && !turno.text.trim()) {
+      return { status: 'stopped', reason: 'model_output_empty', detail: 'Respuesta vacía del proveedor.', turns: turnos };
     }
 
     // 5. Sin herramientas pedidas, el turno es la respuesta final.

@@ -113,7 +113,7 @@ jobs:
       # Optional PostgreSQL concurrency tests run separately with a disposable DB.
       - run: npm run test:ci -- --maxWorkers=2
       - name: Archive extraction security regression
-        run: node --test scripts/dependency-security.test.mjs
+        run: node --test scripts/dependency-security.test.mjs infra/mail-assistant/mail.test.cjs
       - name: Install isolated PDF/OCR browsers
         run: npx playwright install --with-deps chromium webkit
       - name: Real PDF extraction and browser OCR

@@ -52,6 +52,7 @@ export const env = createEnv({
     SENTRY_ORG: z.string().min(1).optional(),
     SENTRY_PROJECT: z.string().min(1).optional(),
     SENTRY_AUTH_TOKEN: z.string().min(10).optional(),
+    SENTRY_READ_TOKEN: z.string().min(10).optional(),
     // Durante y después del cutover, el VPS puede delegar únicamente el envío
     // de email en la instancia gratuita de Vercel, que conserva RESEND_API_KEY.
     EMAIL_RELAY_URL: z.string().url().optional(),
@@ -308,6 +309,7 @@ export const env = createEnv({
      * comparten superficie ni rotación.
      * Generar con `crypto.randomBytes(32).toString('hex')`.
      */
+    AGENT_PROCESSING_AFTER: z.string().datetime().optional(),
     AGENT_INTERNAL_TOKEN: z.string().min(32).optional(),
     /** Firma HMAC de los eventos entrantes, con protección de replay. */
     AGENT_EVENT_HMAC_SECRET: z.string().min(32).optional(),
@@ -359,6 +361,7 @@ export const env = createEnv({
     SENTRY_ORG: process.env.SENTRY_ORG,
     SENTRY_PROJECT: process.env.SENTRY_PROJECT,
     SENTRY_AUTH_TOKEN: process.env.SENTRY_AUTH_TOKEN,
+    SENTRY_READ_TOKEN: process.env.SENTRY_READ_TOKEN,
     EMAIL_RELAY_URL: process.env.EMAIL_RELAY_URL,
     EMAIL_RELAY_TOKEN: process.env.EMAIL_RELAY_TOKEN,
     EMAIL_RELAY_AUTH_TOKEN: process.env.EMAIL_RELAY_AUTH_TOKEN,
@@ -480,6 +483,7 @@ export const env = createEnv({
 
     // Zack Agent OS
     AGENTS_ENABLED: process.env.AGENTS_ENABLED,
+    AGENT_PROCESSING_AFTER: process.env.AGENT_PROCESSING_AFTER,
     AGENT_INTERNAL_TOKEN: process.env.AGENT_INTERNAL_TOKEN,
     AGENT_EVENT_HMAC_SECRET: process.env.AGENT_EVENT_HMAC_SECRET,
     AGENT_GLOBAL_MONTHLY_BUDGET_MICROS: process.env.AGENT_GLOBAL_MONTHLY_BUDGET_MICROS,

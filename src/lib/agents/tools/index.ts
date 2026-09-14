@@ -1,3 +1,5 @@
+import { DEV_TOOLS } from '../dev/tools';
+import { SENTRY_TOOLS } from '../sentry/tools';
 import { GUARDIAN_ALLOWLIST } from '../guardian/definition';
 import { GUARDIAN_TOOLS } from '../guardian/tools';
 import { OPERATION_AGENT_TOOL_NAMES } from '../operations/definition';
@@ -28,7 +30,7 @@ export * from './legacy-read-adapter';
  * del CRM.
  */
 export const AGENT_TOOL_ALLOWLISTS: Readonly<Record<string, readonly string[]>> = {
-  guardian: GUARDIAN_ALLOWLIST,
+  guardian: [...GUARDIAN_ALLOWLIST, 'getSentryIssues'],
   'crm-steward': [
     ...OPERATION_AGENT_TOOL_NAMES['crm-steward'],
     'getCrmHelpContext',
@@ -48,11 +50,11 @@ export const AGENT_TOOL_ALLOWLISTS: Readonly<Record<string, readonly string[]>> 
   ],
   growth: [...OPERATION_AGENT_TOOL_NAMES.growth, 'getCrmHelpContext', 'getOperationsSummary', 'getTalentPerformanceSummary'],
   seo: [...OPERATION_AGENT_TOOL_NAMES.seo, 'getCrmHelpContext'],
-  dev: ['getCrmHelpContext'],
+  dev: ['getDevelopmentEvidence', 'getSentryIssues', 'getCrmHelpContext'],
 };
 
 /** Todas las tools registradas del runtime. */
-export const ALL_AGENT_TOOLS = [...LEGACY_READ_TOOLS, ...GUARDIAN_TOOLS, ...OPERATION_AGENT_TOOLS];
+export const ALL_AGENT_TOOLS = [...LEGACY_READ_TOOLS, ...GUARDIAN_TOOLS, ...OPERATION_AGENT_TOOLS, ...DEV_TOOLS, ...SENTRY_TOOLS];
 
 let registroCompartido: AgentToolRegistry | null = null;
 

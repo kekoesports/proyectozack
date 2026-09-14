@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { env } from '@/lib/env';
+
 import { and, eq, lte, sql } from 'drizzle-orm';
 
 import { agentDefinitions, agentSchedules } from '@/db/schema';
@@ -73,7 +75,9 @@ export function windowsToMaterialize(
   schedule: Pick<AgentSchedule, 'cronExpression' | 'timezone' | 'catchUpPolicy' | 'maxCatchUpRuns' | 'nextRunAt' | 'lastScheduledFor'>,
   ahora: Date,
 ): readonly Date[] {
-  const desde = schedule.lastScheduledFor ?? schedule.nextRunAt;
+  const boundary = env.AGENT_PROCESSING_AFTER ? new Date(env.AGENT_PROCESSING_AFTER) : null;
+  const previous = schedule.lastScheduledFor ?? schedule.nextRunAt;
+  const desde = previous && boundary && previous < boundary ? boundary : previous;
   if (!desde) return [];
 
   switch (schedule.catchUpPolicy) {
@@ -152,7 +156,10 @@ export async function runSchedulerTick(ahora: Date = new Date()): Promise<Schedu
         continue;
       }
 
-      const ventanas = windowsToMaterialize(schedule, ahora);
+      const candidates = windowsToMaterialize(schedule, ahora);
+      const boundary = env.AGENT_PROCESSING_AFTER ? new Date(env.AGENT_PROCESSING_AFTER) : null;
+      const ventanas = candidates.filter((window) => !boundary || window >= boundary);
+      saltadas += candidates.length - ventanas.length;
 
       for (const ventana of ventanas) {
         try {

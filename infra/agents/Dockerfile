@@ -28,6 +28,7 @@ COPY src/lib ./src/lib
 COPY src/db ./src/db
 COPY src/types ./src/types
 COPY src/worker ./src/worker
+COPY infra/mail-assistant ./infra/mail-assistant
 COPY scripts/worker-preload.cjs ./scripts/worker-preload.cjs
 
 # Usuario sin privilegios. El worker no escribe en disco ni necesita root para

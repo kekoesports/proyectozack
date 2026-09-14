@@ -41,7 +41,7 @@ describe('catálogo de agentes', () => {
     expect(SEED_AGENT_MODE).toBe('shadow');
   });
 
-  it('los cinco agentes del rollout usan el modelo económico y Dev sigue apagado', () => {
+  it('los seis agentes usan el modelo económico y nacen desactivados', () => {
     const guardian = AGENT_CATALOG.find((agente) => agente.slug === 'guardian');
     const rollout = AGENT_CATALOG.filter((agente) => agente.slug !== 'dev');
     const dev = AGENT_CATALOG.find((agente) => agente.slug === 'dev');
@@ -57,8 +57,8 @@ describe('catálogo de agentes', () => {
       expect(agente.modelName).toBe('gemini-3.6-flash');
       expect(MODEL_PRICING[modelPricingKey(agente.modelProvider, agente.modelName ?? '')]).toBeDefined();
     }
-    expect(dev?.modelProvider).toBe('null');
-    expect(dev?.modelName).toBeNull();
+    expect(dev).toMatchObject({ modelProvider: 'gemini', modelName: 'gemini-3.6-flash', systemRole: 'ops' });
+    expect(SEED_AGENT_STATUS).toBe('disabled');
   });
 
   it('los límites cumplen los CHECK de la tabla', () => {

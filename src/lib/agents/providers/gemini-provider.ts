@@ -1,5 +1,6 @@
 
 import { logRedacted } from '@/lib/log';
+import { geminiBillableUsage } from '@/lib/schemas/gemini-usage';
 
 import {
   normalizeProviderTurn,
@@ -7,6 +8,7 @@ import {
   type AgentModelProvider,
   type AgentModelRequest,
   type AgentModelResult,
+  type AgentModelTurn,
 } from '../model-provider';
 import type { ErasedAgentTool } from '../types';
 
@@ -20,6 +22,14 @@ import type { ErasedAgentTool } from '../types';
  * la instancia del proveedor, porque cada run crea su propio adaptador.
  */
 export const GEMINI_MIN_REQUEST_INTERVAL_MS = 12_500;
+
+/** Missing or blocked candidates never prove a complete report. */
+export function geminiFinishReason(reason: unknown, hasToolCalls: boolean): AgentModelTurn['finishReason'] {
+  if (reason === 'MAX_TOKENS') return 'length';
+  if (reason === 'STOP') return hasToolCalls ? 'tool_calls' : 'stop';
+  if (reason === undefined || reason === 'FINISH_REASON_UNSPECIFIED') return 'unknown';
+  return 'error';
+}
 
 type GeminiRequestGateOptions = {
   readonly minIntervalMs: number;
@@ -242,7 +252,10 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
       const candidateContent = respuesta.candidates?.[0]?.content as unknown as GeminiHistoryContent | undefined;
       if (candidateContent?.parts?.length) this.history.push(candidateContent);
       const llamadas = typeof respuesta.functionCalls === 'function' ? respuesta.functionCalls() : undefined;
-      const uso = respuesta.usageMetadata;
+      const uso = geminiBillableUsage(respuesta.usageMetadata);
+      if (!uso) {
+        return { ok: false, error: { code: 'provider_error', message: 'Gemini did not provide valid usage accounting', retryable: false } };
+      }
 
       return {
         ok: true,
@@ -256,15 +269,10 @@ export class GeminiAgentModelProvider implements AgentModelProvider {
               ...(typeof cruda.id === 'string' ? { id: cruda.id } : {}),
             };
           }),
-          usage: uso
-            ? {
-                inputTokens: uso.promptTokenCount ?? 0,
-                outputTokens: uso.candidatesTokenCount ?? 0,
-                cachedInputTokens: uso.cachedContentTokenCount ?? null,
-              }
-            : null,
+          usage: uso,
           model: this.modelName,
           provider: 'gemini',
+          finishReason: geminiFinishReason(respuesta.candidates?.[0]?.finishReason, (llamadas?.length ?? 0) > 0),
         }),
       };
     } catch (err) {

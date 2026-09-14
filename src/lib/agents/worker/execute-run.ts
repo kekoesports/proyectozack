@@ -6,7 +6,7 @@ import { ROLES, type Role } from '@/lib/auth-guard';
 import { logRedacted } from '@/lib/log';
 
 import { runAgentLoop, type AgentLoopEvent, type AgentLoopOutcome } from '../agent-loop';
-import { redactForStorage } from '../redaction';
+import { redactReportSummary } from '../redaction';
 import { resolveAgentModelProvider } from '../providers';
 import { getAgentToolRegistry } from '../tools';
 import type { AgentToolContext } from '../types';
@@ -148,7 +148,7 @@ export async function executeAgentRun(opts: ExecuteRunOptions): Promise<AgentLoo
 export function summarizeOutcome(outcome: AgentLoopOutcome): string {
   switch (outcome.status) {
     case 'completed':
-      return String(redactForStorage({ value: outcome.finalText }).value ?? '').slice(0, 2_000);
+      return redactReportSummary(outcome.finalText);
     case 'waiting_approval':
       return `Esperando aprobación para '${outcome.toolName}'.`;
     case 'stopped':

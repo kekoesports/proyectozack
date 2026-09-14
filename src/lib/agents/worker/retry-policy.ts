@@ -57,7 +57,12 @@ export function decideRetry(input: RetryInput): RetryDecision {
     };
   }
 
-  const delayMs = computeRetryDelayMs(input.attempt, input.aleatorio);
+  // Quota windows can outlast the ordinary 2–8 second retry interval. Keep the
+  // same bounded attempt count and budget, but allow the provider to recover.
+  const quotaWindowMs = input.errorCode === 'provider_quota'
+    ? Math.min(900_000, 300_000 * 2 ** Math.max(0, input.attempt - 1))
+    : 0;
+  const delayMs = quotaWindowMs + computeRetryDelayMs(input.attempt, input.aleatorio);
   return {
     kind: 'retry',
     delayMs,

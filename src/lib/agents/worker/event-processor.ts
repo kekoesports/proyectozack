@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { env } from '@/lib/env';
+
 import { sql } from 'drizzle-orm';
 
 import { agentEvents } from '@/db/schema';
@@ -100,6 +102,7 @@ async function claimEvents(workerId: string, claimSeconds: number, limite: numbe
       FROM ${agentEvents}
       WHERE ${agentEvents.status} = 'pending'
         AND ${agentEvents.availableAt} <= now()
+        AND ${env.AGENT_PROCESSING_AFTER ? sql`${agentEvents.createdAt} >= ${env.AGENT_PROCESSING_AFTER}::timestamptz AND ${agentEvents.occurredAt} >= ${env.AGENT_PROCESSING_AFTER}::timestamptz` : sql`true`}
         AND (${agentEvents.claimExpiresAt} IS NULL OR ${agentEvents.claimExpiresAt} < now())
       ORDER BY ${agentEvents.severity} DESC, ${agentEvents.availableAt} ASC
       FOR UPDATE SKIP LOCKED

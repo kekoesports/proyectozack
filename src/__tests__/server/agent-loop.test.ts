@@ -61,6 +61,45 @@ const toolEnvio: ErasedAgentTool = eraseAgentTool<{ to: string }, { enviado: boo
 
 const TOOLS = [toolLectura, toolEnvio];
 
+describe('incomplete report recovery', () => {
+  it('accounts for both turns and replaces a cut report with a complete summary', async () => {
+    const usage = { inputTokens: 100, outputTokens: 20, cachedInputTokens: null };
+    const provider = new FakeAgentModelProvider([
+      { text: 'Cortado en', finishReason: 'length', usage },
+      { text: 'Informe completo.', finishReason: 'stop', usage },
+    ]);
+    const { deps: d, eventos } = deps(provider);
+    expect(await runAgentLoop(d, { systemPrompt: 'x', userMessage: 'y', ctx: ctx() }))
+      .toMatchObject({ status: 'completed', finalText: 'Informe completo.', turns: 2 });
+    expect(eventos.filter(e => e.kind === 'usage')).toHaveLength(2);
+  });
+  it('stops after one recovery attempt', async () => {
+    const { deps: d } = deps(new FakeAgentModelProvider([
+      { text: 'partial', finishReason: 'length' }, { text: 'still partial', finishReason: 'length' },
+    ]));
+    expect(await runAgentLoop(d, { systemPrompt: 'x', userMessage: 'y', ctx: ctx() }))
+      .toMatchObject({ status: 'stopped', reason: 'model_output_incomplete', turns: 2 });
+  });
+  it('does not execute a tool from a truncated response', async () => {
+    const { deps: d, eventos } = deps(new FakeAgentModelProvider([
+      { finishReason: 'length', toolCalls: [{ id: 'partial', toolName: 'leerAlgo', input: {} }] },
+    ]));
+    expect(await runAgentLoop(d, { systemPrompt: 'x', userMessage: 'y', ctx: ctx() }))
+      .toMatchObject({ status: 'stopped', reason: 'model_output_incomplete' });
+    expect(eventos.some(e => e.kind === 'tool_result')).toBe(false);
+  });
+  it.each(['unknown', 'error'] as const)('never treats %s as a successful report', async finishReason => {
+    const { deps: d } = deps(new FakeAgentModelProvider([{ text: 'unverified', finishReason }]));
+    expect(await runAgentLoop(d, { systemPrompt: 'x', userMessage: 'y', ctx: ctx() }))
+      .toMatchObject({ status: 'stopped', reason: 'model_output_unverified' });
+  });
+  it('does not turn empty output into success', async () => {
+    const { deps: d } = deps(new FakeAgentModelProvider([{ text: ' ', finishReason: 'stop' }]));
+    expect(await runAgentLoop(d, { systemPrompt: 'x', userMessage: 'y', ctx: ctx() }))
+      .toMatchObject({ status: 'stopped', reason: 'model_output_empty' });
+  });
+});
+
 function ctx(over: Partial<AgentToolContext> = {}): AgentToolContext {
   return {
     runId: 1,

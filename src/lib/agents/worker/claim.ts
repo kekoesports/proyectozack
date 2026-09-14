@@ -1,5 +1,7 @@
 import 'server-only';
 
+import { env } from '@/lib/env';
+
 import { sql } from 'drizzle-orm';
 
 import { agentRuns } from '@/db/schema';
@@ -44,6 +46,7 @@ export function buildClaimSql(opts: ClaimAgentRunOptions) {
       FROM ${agentRuns}
       WHERE ${agentRuns.status} IN ('queued', 'retry_scheduled')
         AND ${agentRuns.availableAt} <= now()
+        AND ${env.AGENT_PROCESSING_AFTER ? sql`${agentRuns.createdAt} >= ${env.AGENT_PROCESSING_AFTER}::timestamptz` : sql`true`}
         AND ${agentRuns.cancelRequestedAt} IS NULL
         AND (${agentRuns.leaseExpiresAt} IS NULL OR ${agentRuns.leaseExpiresAt} < now())
         AND ${agentRuns.attempt} < ${agentRuns.maxAttempts}
@@ -170,6 +173,7 @@ export async function recoverExpiredLeases(limite = 20): Promise<number> {
       FROM ${agentRuns}
       WHERE ${agentRuns.status} = 'running'
         AND ${agentRuns.leaseExpiresAt} < now()
+        AND ${env.AGENT_PROCESSING_AFTER ? sql`${agentRuns.createdAt} >= ${env.AGENT_PROCESSING_AFTER}::timestamptz` : sql`true`}
       ORDER BY ${agentRuns.leaseExpiresAt} ASC
       FOR UPDATE SKIP LOCKED
       LIMIT ${limite}
