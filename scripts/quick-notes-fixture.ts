@@ -12,7 +12,7 @@ import {
 } from 'drizzle-kit/api';
 import { hashPassword } from 'better-auth/crypto';
 import baseline from '../drizzle/meta/0160_snapshot.json';
-import expected from '../drizzle/meta/0161_snapshot.json';
+import expected from '../drizzle/meta/0164_snapshot.json';
 import * as schema from '../src/db/schema';
 
 export async function quickNotesFixture(port: number) {
@@ -26,9 +26,12 @@ export async function quickNotesFixture(port: number) {
   // Apply the checked-in migration, not a schema push. Existing sentinel row must survive unchanged.
   await pg.exec(`INSERT INTO "user" (id,name,email,"emailVerified","createdAt","updatedAt",role) VALUES ('history','History QA','history@notes.test',true,now(),now(),'staff');
     INSERT INTO crm_tasks (title,owner_id,category,week_label) VALUES ('HISTORY DO NOT CHANGE','history','General','2025-W01');`);
-  await pg.exec(
-    await readFile('drizzle/0161_quick_notes_task_notices.sql', 'utf8'),
-  );
+  for (const migration of [
+    '0161_creator_intake', '0162_quick_notes_task_notices',
+    '0163_whatsapp_reliability', '0164_whatsapp_queue_order',
+  ]) {
+    await pg.exec(await readFile(`drizzle/${migration}.sql`, 'utf8'));
+  }
   const server = new PGLiteSocketServer({
     db: pg,
     host: '127.0.0.1',

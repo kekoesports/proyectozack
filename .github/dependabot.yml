@@ -9,6 +9,13 @@ updates:
       time: "06:00"
       timezone: Europe/Madrid
     open-pull-requests-limit: 10
+    ignore:
+      # Runtime and CI remain on Node 24; upgrade types with the runtime.
+      - dependency-name: "@types/node"
+        update-types: ["version-update:semver-major"]
+      # eslint-plugin-react 7.37.5 does not support ESLint 10 yet.
+      - dependency-name: "eslint"
+        update-types: ["version-update:semver-major"]
     groups:
       production-dependencies:
         dependency-type: production
@@ -34,6 +41,10 @@ updates:
       - /infra/agents
       - /infra/crm/scheduler
       - /infra/studio
+    ignore:
+      # A runtime-major upgrade needs coordinated application/worker validation.
+      - dependency-name: "node"
+        update-types: ["version-update:semver-major"]
     schedule:
       interval: weekly
       day: monday

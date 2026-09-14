@@ -23,8 +23,9 @@ class WatchdogTests(unittest.TestCase):
         self.run = patch.object(watchdog.subprocess, 'run', return_value=Mock(returncode=0, stdout=''))
         original_read = pathlib.Path.read_text
         self.read = patch.object(pathlib.Path, 'read_text', autospec=True,
-          side_effect=lambda path, *args, **kwargs: 'MemAvailable: 2097152 kB\n' if str(path) == '/proc/meminfo' else original_read(path, *args, **kwargs))
-        self.disk = patch.object(watchdog.os, 'statvfs', return_value=Mock(f_bavail=80, f_blocks=100))
+          side_effect=lambda path, *args, **kwargs: 'MemAvailable: 2097152 kB\n' if path.as_posix() == '/proc/meminfo' else original_read(path, *args, **kwargs))
+        # The production watchdog is Linux-only; its isolated tests also run on Windows.
+        self.disk = patch.object(watchdog.os, 'statvfs', create=True, return_value=Mock(f_bavail=80, f_blocks=100))
         self.kernel = patch.object(watchdog, 'kernel_health', return_value={'available':True})
         self.home = patch.object(pathlib.Path, 'home', return_value=pathlib.Path(self.temp.name))
         self.read.start(); self.disk.start(); self.kernel.start(); self.home.start()

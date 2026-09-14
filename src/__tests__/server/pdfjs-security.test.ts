@@ -39,7 +39,7 @@ describe('PDF.js security baseline', () => {
 
   it('fija versiones corregidas para PDF.js, su worker y js-yaml', () => {
     expect(PACKAGE.dependencies?.['pdfjs-dist']).toBe('^6.3.289');
-    expect(PACKAGE.overrides?.['js-yaml']).toBe('4.3.1');
+    expect(PACKAGE.overrides?.['js-yaml']).toBe('4.3.2');
     expect(SELF_HOSTED_WORKER).toContain('6.3.289');
   });
 });
