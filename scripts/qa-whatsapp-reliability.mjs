@@ -139,6 +139,29 @@ try {
   assert.equal(validateExtraction({ profile: { name: 'secret' }, evidence: { name: 'not in input' }, intent: 'intake' }, 'hello'), null);
   for (const lang of ['Hola', 'Hello']) assert.equal(decideIntake({}, { profile: {}, evidence: {}, intent: 'intake' }).state, 'bot', lang);
   evidence.push('AI failure and commercial/legal uncertainty escalate; unsupported extraction rejected');
+  const newPhone = '34999000003';
+  const newInbound = update('TEST-general-inbound', `${newPhone}@c.us`, 'Hola');
+  const allConfig = { ...config, replyToInbound: true, now: new Date() };
+  assert.equal(normalizeWahaIntake(newInbound, config), null, 'Legacy pilot remains restricted');
+  const generalEvent = normalizeWahaIntake(newInbound, allConfig);
+  assert.ok(generalEvent);
+  const newId = await ensureWahaIdentity(database, newInbound, newInbound, company, true);
+  await repository.ingest(generalEvent, hello);
+  let generalSends = 0;
+  const generalSender = async input => { assert.equal(input.chatId, newPhone); return `TEST-general-${++generalSends}`; };
+  await deliverIntake(database, newId, generalSender, new Date(config.startAt), 'whatsapp');
+  await repository.ingest(generalEvent, hello);
+  await deliverIntake(database, newId, generalSender, new Date(config.startAt), 'whatsapp');
+  assert.equal(generalSends, 1, 'New non-pilot contact receives exactly one reply including replay');
+  await repository.ingest({ ...generalEvent, actor: 'owner', externalId: 'TEST-human-takeover', text: 'Atiendo yo' }, hello);
+  await repository.ingest({ ...generalEvent, externalId: 'TEST-human-paused-inbound' }, hello);
+  await deliverIntake(database, newId, generalSender, new Date(config.startAt), 'whatsapp');
+  assert.equal(generalSends, 1, 'General scope never overrides human takeover');
+  const outboundOnly = { ...update('TEST-outbound-only', '34999000004@c.us'), payload: {
+    ...update('TEST-outbound-only', '34999000004@c.us').payload, fromMe: true,
+  } };
+  assert.equal(await ensureWahaIdentity(database, outboundOnly, outboundOnly, company, true), null);
+  evidence.push('new non-pilot inbound persists and replies once; replay, human pause and outbound-only exclusion');
   console.log(JSON.stringify({ passed: evidence.length, cases: evidence, realProviderCalls: 0, productionWrites: 0 }, null, 2));
 } finally {
   await pool.end();

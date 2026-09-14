@@ -22,6 +22,7 @@ export async function processWahaUpdate(update: IntakeWahaUpdate): Promise<Respo
   try {
     const resolved = await resolveWahaPeer(update);
     const event = normalizeWahaIntake(resolved, { session, phone, chats: chats.split(','), startAt, now: new Date(),
+      replyToInbound: env.CREATOR_INTAKE_WAHA_REPLY_TO_INBOUND,
       ...(env.CREATOR_INTAKE_WAHA_RUN ? { run: env.CREATOR_INTAKE_WAHA_RUN } : {}),
     });
     if (!event) {
@@ -33,7 +34,9 @@ export async function processWahaUpdate(update: IntakeWahaUpdate): Promise<Respo
       const capture = await captureWhatsAppContact(db, resolved, captureConfig);
       return Response.json({ ok: true, ignored: !capture.captured, reason: capture.captured ? 'human-review' : 'out-of-scope', ...capture });
     }
-    await ensureWahaIdentity(db, update, resolved, phone, true);
+    const identity = await ensureWahaIdentity(db, update, resolved, phone, true);
+    // General reception must not create bot conversations from unsolicited company outbounds.
+    if (!identity) return Response.json({ ok: true, ignored: true, reason: 'no-inbound-contact' });
     const result = await creatorIntake.ingest(event, extractCreatorIntake);
     if (env.CREATOR_INTAKE_SEND_ENABLED) await deliverIntake(db, result.id, sendIntakeWaha, new Date(startAt), 'whatsapp');
     return Response.json({ ok: true, duplicate: result.duplicate, conversationId: result.id });

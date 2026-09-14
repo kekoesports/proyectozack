@@ -35,3 +35,17 @@ it('keeps contact identity stable across named runs and reconnects', () => {
   expect(normalizeWahaIntake(update(), { ...config, run: 'onboarding-v2' })?.accountId).toBe('waha:34000000000');
   expect(normalizeWahaIntake(update(), config)?.accountId).toBe('waha:34000000000');
 });
+it('admits new private inbound contacts only when general replies are enabled', () => {
+  const fixture = update();
+  const inbound = { ...fixture, payload: { ...fixture.payload, from: '34000000002@c.us' } };
+  expect(normalizeWahaIntake(inbound, config)).toBeNull();
+  expect(normalizeWahaIntake(inbound, { ...config, replyToInbound: true }))
+    .toMatchObject({ actor: 'creator', chatId: '34000000002' });
+  for (const from of ['34000000000@c.us', '34000000002@g.us', '34000000002@lid', 'status@broadcast', 'bad@c.us']) {
+    expect(normalizeWahaIntake({ ...inbound, payload: { ...inbound.payload, from } }, { ...config, replyToInbound: true })).toBeNull();
+  }
+  expect(normalizeWahaIntake({ ...inbound, payload: { ...inbound.payload, timestamp: now.getTime() / 1000 - 3600 } },
+    { ...config, replyToInbound: true })).toBeNull();
+  expect(normalizeWahaIntake({ ...inbound, payload: { ...inbound.payload, body: 'Tu código de verificación es 123456' } },
+    { ...config, replyToInbound: true })).toBeNull();
+});

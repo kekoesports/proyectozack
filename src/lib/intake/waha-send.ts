@@ -5,6 +5,7 @@ import type { IntakeSender } from './delivery';
 import { sendIntakeOwnerAlert, verifyIntakeOwnerAlert } from './owner-alert';
 import { wahaIntakeAccount } from './waha-account';
 import { IntakeSendNotAttempted } from './send-errors';
+import { canReplyToWahaChat } from './waha-scope';
 
 export const sendIntakeWaha: IntakeSender = async (input) => {
   const base = env.CREATOR_INTAKE_WAHA_URL;
@@ -14,7 +15,8 @@ export const sendIntakeWaha: IntakeSender = async (input) => {
   if (!env.CREATOR_INTAKE_ENABLED || !env.CREATOR_INTAKE_SEND_ENABLED
     || !env.CREATOR_INTAKE_WAHA_ENABLED || !base || !key || !session || !phone
     || input.channel !== 'whatsapp' || input.accountId !== wahaIntakeAccount(phone, env.CREATOR_INTAKE_WAHA_RUN)
-    || !env.CREATOR_INTAKE_WHATSAPP_CHATS?.split(',').includes(input.chatId)) return null;
+    || !canReplyToWahaChat(input.chatId, { phone, chats: env.CREATOR_INTAKE_WHATSAPP_CHATS,
+      replyToInbound: env.CREATOR_INTAKE_WAHA_REPLY_TO_INBOUND })) return null;
   if (input.kind === 'alert') return sendIntakeOwnerAlert(input.text, input.conversationId);
   if (input.kind !== 'reply') return null;
   const headers = { 'X-Api-Key': key, 'Content-Type': 'application/json' };

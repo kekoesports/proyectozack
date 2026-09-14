@@ -12,6 +12,7 @@ import { intakeInbox } from '@/db/schema/intakeReliability';
 import { desc, eq } from 'drizzle-orm';
 import { IntakeWahaMessage } from '@/lib/schemas/intakeWaha';
 import { InboxControls } from '@/features/admin/captacion/InboxControls';
+import { canReplyToWahaChat } from '@/lib/intake/waha-scope';
 
 export const metadata = { title: 'Captación de creadores | SocialPro' };
 export const dynamic = 'force-dynamic';
@@ -47,13 +48,16 @@ export default async function IntakePage({ searchParams }: { searchParams: Promi
   const detail = env.CREATOR_INTAKE_ENABLED && selectedId ? await creatorIntake.detail(selectedId) : null;
   const failures = env.CREATOR_INTAKE_ENABLED ? await readInboxFailures() : [];
   const outsidePilot = detail?.conversation.channel === 'whatsapp' && detail.conversation.accountId.startsWith('waha:')
-    && !env.CREATOR_INTAKE_WHATSAPP_CHATS?.split(',').includes(detail.conversation.chatId);
+    && !canReplyToWahaChat(detail.conversation.chatId, { phone: env.CREATOR_INTAKE_WHATSAPP_PHONE,
+      chats: env.CREATOR_INTAKE_WHATSAPP_CHATS, replyToInbound: env.CREATOR_INTAKE_WAHA_REPLY_TO_INBOUND });
   return (
     <div className="space-y-5 text-sp-admin-text">
       <AdminPageHeader title="Captación de creadores" subtitle="Mensajería de SocialPro · historial, perfil y atención personal" />
       <div className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-4 text-sm">
         {!env.CREATOR_INTAKE_ENABLED ? 'Preparado para pruebas. El asistente todavía no está activado.'
-          : !env.CREATOR_INTAKE_SEND_ENABLED ? 'Modo revisión: se guardan propuestas; no se envían respuestas.' : 'Piloto: solo atiende los chats habilitados de los canales conectados.'}
+          : !env.CREATOR_INTAKE_SEND_ENABLED ? 'Modo revisión: se guardan propuestas; no se envían respuestas.'
+            : env.CREATOR_INTAKE_WAHA_REPLY_TO_INBOUND ? 'WhatsApp: atiende mensajes nuevos de contactos privados. Las conversaciones en atención humana permanecen pausadas.'
+              : 'Piloto: solo atiende los chats habilitados de los canales conectados.'}
         <p className="mt-1 text-sp-admin-muted">Al tomar una conversación, el asistente se pausa. Continúa desde el chat original en tu móvil.</p>
         {outsidePilot && <p className="mt-2 font-medium">Este contacto está fuera del piloto de respuestas: necesita atención personal aunque su estado anterior indicase «Asistente».</p>}
       </div>
