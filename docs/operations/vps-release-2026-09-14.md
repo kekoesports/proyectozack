@@ -14,4 +14,37 @@ Production PostgreSQL was identified read-only as `socialpro`, application role 
 
 Build exact Git archives, with the bounded host build lock, disposable PostgreSQL and synthetic build values. Do not use production data for prerendering. Preserve the existing public build configuration. Switch only the intended Caddy upstreams after candidate readiness and authorization-negative checks. Stop each singleton worker before starting its replacement. Retain stopped rollback containers, image digests and the exact pre-switch Caddy configuration; rollback must not restore or discard current business data.
 
-Status at this source checkpoint: reconciled implementation under validation; production cutover not yet performed. Actual activation and verification evidence must be appended after deployment.
+## Deployment and verification
+
+**IMPLEMENTED:** master `283c3e74b12a4d313eac4f7a77b680d6492bae97` was pushed after every PR check passed. The four immutable images were built from `03e9b5bf8e06402a3e2ad3a54bc4b0bfd22793cc`; the only difference from validated master is the corrected Dev prompt assertion in `src/__tests__/server/operation-agents-definition.test.ts`. Production source is identical. Later documentation commits do not change those images.
+
+**TESTED:** CI run `34824173873`, CodeQL `34824170279` and WhatsApp reliability `34824173835` passed. 437 suites / 6,660 tests passed, with one optional test skipped. The separate archive/mail checks passed 21/21. TypeScript, lint (two existing navigation warnings), migration metadata/drift, isolated PG17 build, production Docker PDF/OCR and safe worker boot passed. On the VPS, the exact Studio image rendered synthetic MP4s in 9:16, 1:1 and 16:9 with verified dimensions and duration. The same render check passed inside the active container after cutover, using temporary files and no customer media, database writes or provider calls.
+
+**ACTIVE:** Caddy switched only `socialpro.es` and `app.socialpro.es` at approximately 08:54 UTC. CRM and Studio candidates passed database readiness, login and unauthorized-access checks before switching. Public HTTPS checks passed for both sites; KekoPilot and TikTok LIVE remained reachable without changing their routes. Homepage talent links and image counts matched the previous release.
+
+| Service | Active container | Image family |
+| --- | --- | --- |
+| CRM | `socialpro-crm-release-03e9b5bf8e06` | web |
+| Studio | `socialpro-studio-release-03e9b5bf8e06` | web |
+| WhatsApp | `socialpro-waha-reliability` | intake |
+| Contact register | `socialpro-contact-register-reliability` | intake |
+| Zack | `socialpro-zack-worker-20260911` | agents |
+| IP collector | `socialpro-ip-evidence-20260911` | agents |
+| Mail FAQ | `socialpro-mail-assistant` | agents |
+| Native renderer | `socialpro-studio-render-1` | studio |
+
+Image tags are `socialpro-release:<family>-03e9b5bf8e06`; full digests are retained in the private release receipt. All eight final instances were running with zero restarts. Runtime policies, credentials, persistent mounts and recipients were preserved; release metadata was updated. The first Zack/IP replacement attempt omitted their temporary mount and failed before useful work; both rolled back automatically. The helper was corrected to preserve `Tmpfs`, then both replacements succeeded. Read-only roots and capability restrictions remain in place.
+
+**FUNCTIONING — measured boundaries:** fresh synthetic Dev run **318**, identity `TEST_SOCIALPRO_VPS_20260914_03e9b5bf_DEV`, started 08:58:14.969 UTC and succeeded 08:58:34.649 UTC on attempt 1. It persisted two successful READ calls (`getDevelopmentEvidence`, `getSentryIssues`) and a 1,139-character report. Sentry returned five actual unresolved application issues; these are separate from GitHub security alerts and were not represented as fixed. Estimated provider cost was USD0.009873, within unchanged budgets. Immediate replay and completed replay at 09:02:57 UTC reused run 318 with unchanged calls, cost and completion timestamp. The requested report length was a target, not a strict pass: the report exceeded 1,000 characters.
+
+The active Zack heartbeat reports the image source SHA. All 11,817 historical pending events and other pre-cutoff status counts were unchanged. WhatsApp and contact-register health checks passed; existing inbox/outbox receipts survived replacement. No new WhatsApp message was sent as deployment QA; the latest observed accepted delivery predates cutover, so it is not evidence of a fresh production conversation on this image. Current implementation has the isolated PG17 reliability tests described above.
+
+The contact register completed at 09:00:03 UTC with 94 discovered contacts, zero appended/updated rows and verified readback. Its **12 pre-existing ambiguous Drive rows remain guarded conflicts**, not repaired data. The watchdog still reports this data-review warning. Its cron now runs the versioned release source with the original state and cutoff. Task-notice scheduling now targets the new CRM; other schedules were retained. New mail polling executions 74418, 74426 and 74434 succeeded after replacement. Mail and IP endpoints rejected unauthenticated requests with 401. No fresh end-to-end IP collection or customer-mail delivery was forced by this deployment.
+
+## Backup, rollback and evidence
+
+All 165 repository migration timestamps and hashes matched production (216 retained journal rows); no migration or schema write was needed. A private custom-format backup was created and its directory successfully read with `pg_restore --list`: 4,268,375 bytes, SHA256 `222418088692a048970d08c4f45bf4c0fbd4e14cb4133a1b8622fbee1e7a9eb0`. This verifies a readable backup, not a restoration exercise.
+
+Private evidence is under `/home/deploy/.config/socialpro/deploy-20260914/`: source/image receipts, CI gate, sanitized verification results, full previous container configurations, exact Caddy/scheduler backups and database backup. Configuration, private logs, receipts and backups must not be published.
+
+Previous web containers `socialpro-crm-whatsapp-5fe20fe7` and `socialpro-studio-widgets-web-1` remain stopped. Each singleton worker has a stopped `<original-name>-rollback-03e9b5bf8e06` counterpart. Roll back workers one at a time: stop the new instance before restoring the old name and starting the previous image. For web rollback, start both previous web instances, validate readiness, then restore only the two reviewed Caddy upstreams (preserve any later unrelated changes). Restore the task-notice/watchdog target only if needed. Never roll back by restoring the database or deleting current delivery receipts. Automatic worker rollback was exercised during the temporary-mount correction; a full database restoration was not performed.
