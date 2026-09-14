@@ -67,6 +67,8 @@ try {
       assert.equal(result.ok, true, `${name}: ${JSON.stringify(result.debug ?? {})}`);
       assert.equal(result.pageCount, 1);
       assert.equal(result.rows.length, 1);
+      assert.equal(result.rows[0].yearMonth, '2026-09');
+      assert.match(result.rows[0].notes, /Líquido: 800/);
       console.log(JSON.stringify({ engine: name, serverPdf: 'passed', browserOcr: 'passed', rows: 1 }));
     } finally {
       await browser.close();

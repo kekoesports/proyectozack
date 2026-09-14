@@ -22,8 +22,9 @@ describe('legacy Vercel publication isolation', () => {
   });
 
   test('blocks Git deployment and runs the guard before all legacy effects', () => {
-    expect(config.git.deploymentEnabled).toEqual({ master: false, 'stabilize/socialpro-2026-09-05': false,
-      'codex/whatsapp-recovery-20260913': false });
+    // Additional explicitly blocked branches must not invalidate production isolation.
+    expect(config.git.deploymentEnabled).toMatchObject({ master: false, 'stabilize/socialpro-2026-09-05': false,
+      'codex/whatsapp-recovery-20260913': false, 'codex/github-resolution-20260914': false });
     expect(config.buildCommand).toBe('node scripts/assert-vercel-build-target.cjs && tsx scripts/migrate.ts && next build && tsx scripts/ping-indexnow.ts');
   });
 });
