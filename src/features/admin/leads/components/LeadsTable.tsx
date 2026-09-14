@@ -24,9 +24,10 @@ type Props = {
   readonly canWrite: boolean;
 };
 
-function isStatusFilter(v: string): v is StatusFilter {
-  return v === 'all' || isLeadStatus(v);
-}
+const INBOX_LABELS: Record<StatusFilter, string> = {
+  nuevo: 'Entrada', contactado: 'Contactados', ganado: 'Ganados', descartado: 'Descartados', all: 'Todos',
+};
+const INBOXES: readonly StatusFilter[] = ['nuevo', 'contactado', 'ganado', 'descartado', 'all'];
 
 function isOwnerFilter(v: string): v is OwnerFilter {
   return v === 'all' || v === 'unassigned' || v === 'mine';
@@ -34,10 +35,19 @@ function isOwnerFilter(v: string): v is OwnerFilter {
 
 export function LeadsTable({ leads, staff, currentUserId, canWrite }: Props): React.ReactElement {
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<StatusFilter>('all');
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>('nuevo');
   const [typeFilter, setTypeFilter] = useState<TypeFilter>('all');
   const [ownerFilter, setOwnerFilter] = useState<OwnerFilter>('all');
-  const [, startTransition] = useTransition();
+  const [isPending, startTransition] = useTransition();
+  const [feedback, setFeedback] = useState<{ error: boolean; text: string } | null>(null);
+
+  const inboxCounts = useMemo(() => {
+    const counts: Record<StatusFilter, number> = {
+      nuevo: 0, contactado: 0, ganado: 0, descartado: 0, all: leads.length,
+    };
+    for (const lead of leads) counts[lead.status] += 1;
+    return counts;
+  }, [leads]);
 
   const types = useMemo(
     () => Array.from(new Set(leads.map((l) => l.type))).sort(),
@@ -60,8 +70,18 @@ export function LeadsTable({ leads, staff, currentUserId, canWrite }: Props): Re
 
   const onStatusChange = (lead: LeadWithAssignee, raw: string): void => {
     if (!isLeadStatus(raw) || raw === lead.status) return;
+    setFeedback(null);
     startTransition(async () => {
-      await updateLeadStatusAction({ id: lead.id, status: raw });
+      try {
+        const result = await updateLeadStatusAction({ id: lead.id, status: raw });
+        if (!result.ok) {
+          setFeedback({ error: true, text: result.error });
+          return;
+        }
+        setFeedback({ error: false, text: `Lead movido a ${INBOX_LABELS[raw]}.` });
+      } catch {
+        setFeedback({ error: true, text: 'No se pudo cambiar el estado. Inténtalo de nuevo.' });
+      }
     });
   };
 
@@ -74,13 +94,12 @@ export function LeadsTable({ leads, staff, currentUserId, canWrite }: Props): Re
 
   const resetFilters = (): void => {
     setSearch('');
-    setStatusFilter('all');
     setTypeFilter('all');
     setOwnerFilter('all');
   };
 
   const filtersActive =
-    search !== '' || statusFilter !== 'all' || typeFilter !== 'all' || ownerFilter !== 'all';
+    search !== '' || typeFilter !== 'all' || ownerFilter !== 'all';
 
   if (leads.length === 0) {
     return (
@@ -93,25 +112,40 @@ export function LeadsTable({ leads, staff, currentUserId, canWrite }: Props): Re
 
   return (
     <div className="space-y-4">
+      <div role="group" aria-label="Bandejas de leads" className="flex gap-1 overflow-x-auto border-b border-sp-admin-border">
+        {INBOXES.map((key) => (
+          <button
+            key={key}
+            type="button"
+            aria-pressed={statusFilter === key}
+            onClick={() => { setStatusFilter(key); setFeedback(null); }}
+            className={`flex shrink-0 items-center gap-2 border-b-2 px-3 py-2 text-sm font-medium transition-colors ${
+              statusFilter === key
+                ? 'border-sp-orange text-sp-orange'
+                : 'border-transparent text-sp-admin-muted hover:text-sp-admin-text'
+            }`}
+          >
+            {INBOX_LABELS[key]}
+            <span className="rounded bg-sp-admin-bg2 px-1.5 py-0.5 text-xs tabular-nums">{inboxCounts[key]}</span>
+          </button>
+        ))}
+      </div>
+      {feedback ? (
+        <p role={feedback.error ? 'alert' : 'status'} className={`text-sm ${feedback.error ? 'text-red-400' : 'text-sp-admin-muted'}`}>
+          {feedback.text}
+        </p>
+      ) : null}
       <div className="flex flex-wrap items-center gap-2">
         <input
           type="text"
+          aria-label="Buscar leads"
           placeholder="Buscar por nombre, email, empresa o mensaje…"
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="flex-1 min-w-[240px] px-3 py-1.5 text-sm bg-sp-admin-card border border-sp-admin-border rounded text-sp-admin-text placeholder:text-sp-admin-muted focus:outline-none focus:border-sp-admin-text/40"
         />
         <select
-          value={statusFilter}
-          onChange={(e) => { if (isStatusFilter(e.target.value)) setStatusFilter(e.target.value); }}
-          className="px-3 py-1.5 text-sm bg-sp-admin-card border border-sp-admin-border rounded text-sp-admin-text"
-        >
-          <option value="all">Todos los estados</option>
-          {Object.entries(STATUS_META).map(([k, { label }]) => (
-            <option key={k} value={k}>{label}</option>
-          ))}
-        </select>
-        <select
+          aria-label="Tipo de lead"
           value={typeFilter}
           onChange={(e) => setTypeFilter(e.target.value)}
           className="px-3 py-1.5 text-sm bg-sp-admin-card border border-sp-admin-border rounded text-sp-admin-text"
@@ -122,6 +156,7 @@ export function LeadsTable({ leads, staff, currentUserId, canWrite }: Props): Re
           ))}
         </select>
         <select
+          aria-label="Responsable del lead"
           value={ownerFilter}
           onChange={(e) => { if (isOwnerFilter(e.target.value)) setOwnerFilter(e.target.value); }}
           className="px-3 py-1.5 text-sm bg-sp-admin-card border border-sp-admin-border rounded text-sp-admin-text"
@@ -141,13 +176,17 @@ export function LeadsTable({ leads, staff, currentUserId, canWrite }: Props): Re
         ) : null}
       </div>
 
-      <div className="text-xs text-sp-admin-muted tabular-nums">
-        {filtered.length} de {leads.length}
+      <div aria-live="polite" className="text-xs text-sp-admin-muted tabular-nums">
+        {filtered.length} de {inboxCounts[statusFilter]} en {INBOX_LABELS[statusFilter]}
       </div>
 
       {filtered.length === 0 ? (
         <div className="rounded-lg border border-sp-admin-border bg-sp-admin-card p-8 text-center text-sm text-sp-admin-muted">
-          Ningún lead coincide con estos filtros.
+          {filtersActive
+            ? 'Ningún lead coincide con estos filtros.'
+            : statusFilter === 'nuevo'
+              ? 'Entrada al día. Los leads atendidos siguen disponibles en sus pestañas.'
+              : 'Todavía no hay leads en esta pestaña.'}
         </div>
       ) : (
         <div className="overflow-x-auto rounded-lg border border-sp-admin-border bg-sp-admin-card">
@@ -185,6 +224,8 @@ export function LeadsTable({ leads, staff, currentUserId, canWrite }: Props): Re
                     <td className="px-3 py-2 align-top">
                       {canWrite ? (
                         <select
+                          aria-label={`Estado de ${l.name}`}
+                          disabled={isPending}
                           value={l.status}
                           onChange={(e) => onStatusChange(l, e.target.value)}
                           className={`text-xs px-2 py-1 rounded border bg-transparent ${STATUS_META[l.status].color}`}
@@ -202,6 +243,8 @@ export function LeadsTable({ leads, staff, currentUserId, canWrite }: Props): Re
                     <td className="px-3 py-2 align-top">
                       {canWrite ? (
                         <select
+                          aria-label={`Responsable de ${l.name}`}
+                          disabled={isPending}
                           value={l.assignedToId ?? ''}
                           onChange={(e) => onAssignChange(l, e.target.value)}
                           className="text-xs px-2 py-1 rounded border border-sp-admin-border bg-transparent text-sp-admin-text"
