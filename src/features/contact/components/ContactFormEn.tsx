@@ -129,7 +129,7 @@ export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Part
                       placeholder="Your name"
                       className={inputClasses}
                     />
-                    {errors.name && <p className="text-xs text-red-400 mt-1">{errors.name.message}</p>}
+                    {errors.name && <p className="text-xs text-red-400 mt-1">Enter your name (2–100 characters)</p>}
                   </div>
                   <div>
                     <label htmlFor="contact-en-email" className={labelClasses}>Email *</label>
@@ -140,7 +140,7 @@ export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Part
                       placeholder="you@email.com"
                       className={inputClasses}
                     />
-                    {errors.email && <p className="text-xs text-red-400 mt-1">{errors.email.message}</p>}
+                    {errors.email && <p className="text-xs text-red-400 mt-1">Enter a valid email address (up to 200 characters)</p>}
                   </div>
                 </div>
 
@@ -154,7 +154,7 @@ export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Part
                       </option>
                     ))}
                   </select>
-                  {errors.type && <p className="text-xs text-red-400 mt-1">{errors.type.message}</p>}
+                  {errors.type && <p className="text-xs text-red-400 mt-1">Choose an enquiry type</p>}
                 </div>
 
                 <div>
@@ -281,7 +281,7 @@ export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Part
                     placeholder="Tell us what you have in mind..."
                     className={`${inputClasses} resize-none`}
                   />
-                  {errors.message && <p className="text-xs text-red-400 mt-1">{errors.message.message}</p>}
+                  {errors.message && <p className="text-xs text-red-400 mt-1">Tell us more (10–5,000 characters)</p>}
                 </div>
 
                 {status === 'error' && (
