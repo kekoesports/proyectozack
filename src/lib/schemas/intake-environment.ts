@@ -1,0 +1,33 @@
+import { z } from 'zod';
+
+/** Intake validation only; runtime values remain centralized in lib/env.ts. */
+export const intakeEnvironment = {
+  CREATOR_INTAKE_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  CREATOR_INTAKE_AI_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  CREATOR_INTAKE_AI_MODEL: z.literal('gemini-3.1-flash-lite').optional(),
+  CREATOR_INTAKE_AI_PILOT_DIR: z.string().min(1).optional(),
+  CREATOR_INTAKE_SEND_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  CREATOR_INTAKE_WHATSAPP_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  CREATOR_INTAKE_WAHA_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  CREATOR_INTAKE_WAHA_REPLY_TO_INBOUND: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  CREATOR_INTAKE_WAHA_URL: z.string().url().optional(),
+  CREATOR_INTAKE_WAHA_KEY: z.string().min(32).optional(),
+  CREATOR_INTAKE_WAHA_SECRET: z.string().min(32).max(256).optional(),
+  CREATOR_INTAKE_WAHA_SESSION: z.string().regex(/^[a-z0-9_-]+$/).optional(),
+  CREATOR_INTAKE_WAHA_START_AT: z.iso.datetime().optional(),
+  CREATOR_INTAKE_WAHA_RUN: z.string().regex(/^[a-z0-9-]{1,60}$/).optional(),
+  CREATOR_INTAKE_WHATSAPP_TOKEN: z.string().min(20).optional(),
+  CREATOR_INTAKE_WHATSAPP_APP_SECRET: z.string().min(32).optional(),
+  CREATOR_INTAKE_WHATSAPP_VERIFY_TOKEN: z.string().min(32).max(256).optional(),
+  CREATOR_INTAKE_WHATSAPP_WABA: z.string().regex(/^\d+$/).optional(),
+  CREATOR_INTAKE_WHATSAPP_PHONE_ID: z.string().regex(/^\d+$/).optional(),
+  CREATOR_INTAKE_WHATSAPP_PHONE: z.string().regex(/^\d{7,15}$/).optional(),
+  CREATOR_INTAKE_WHATSAPP_CHATS: z.string().regex(/^\d{7,15}(,\d{7,15})*$/).optional(),
+  CREATOR_INTAKE_TELEGRAM_TOKEN: z.string().min(20).optional(),
+  CREATOR_INTAKE_TELEGRAM_SECRET: z.string().min(32).max(256).regex(/^[A-Za-z0-9_-]+$/).optional(),
+  CREATOR_INTAKE_TELEGRAM_CONNECTION: z.string().min(1).max(200).optional(),
+  CREATOR_INTAKE_TELEGRAM_OWNER: z.string().regex(/^\d+$/).optional(),
+  CREATOR_INTAKE_TELEGRAM_ALERT_CHAT: z.string().regex(/^\d+$/).optional(),
+  CREATOR_INTAKE_START_AT: z.iso.datetime().optional(),
+  CREATOR_INTAKE_TELEGRAM_CHATS: z.string().regex(/^\d+(,\d+)*$/).optional(),
+};
