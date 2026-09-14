@@ -27,7 +27,7 @@ export default async function AdminPressTargetsPage(): Promise<React.ReactElemen
           <h2 className="text-lg font-bold text-sp-admin-text">Artículos preparados</h2>
           {drafts.map((draft) => (
             <article key={draft.id} className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-5 space-y-3">
-              <span className="text-xs font-semibold text-amber-400">Borrador · sin enviar</span>
+              <span className="text-xs font-semibold text-amber-400">Borrador en el CRM</span>
               <h3 className="text-lg font-bold text-sp-admin-text">{draft.title}</h3>
               <p className="text-sm text-sp-admin-muted">{draft.excerpt}</p>
               <details className="text-sm text-sp-admin-text">

@@ -64,7 +64,7 @@ describe('sprint3 — R07 staff dashboard', () => {
     const src = read('src/lib/queries/dashboard.ts');
     expect(src).toMatch(/getDashboardPendingTasks[\s\S]*taskVisibilityCondition\(session\)/);
     expect(src).toMatch(/getDashboardUpcomingFollowups[\s\S]*staffUserId/);
-    expect(src).toMatch(/skipFinancial/);
+    expect(read('src/lib/queries/dashboard-activity.ts')).toMatch(/skipFinancial/);
   });
 });
 

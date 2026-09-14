@@ -26,6 +26,12 @@ function extractCsp(): string {
 describe('CSP — WASM policy en next.config.ts', () => {
   const csp = extractCsp();
 
+  it('permits the configured regional Analytics collector without allowing arbitrary hosts', () => {
+    const connect = csp.split('\n').find((line) => line.includes('connect-src')) ?? '';
+    expect(connect).toContain('https://region1.google-analytics.com');
+    expect(connect).not.toMatch(/\s(?:\*|https:)(?:\s|["'])/);
+  });
+
   it('[1] script-src incluye "wasm-unsafe-eval" (permite WASM.instantiate sin habilitar eval)', () => {
     // Buscar la línea de script-src con wasm-unsafe-eval
     const scriptSrcLine = csp.split('\n').find((l) => l.includes('script-src'));

@@ -136,7 +136,7 @@ describe('invoice status semantics', () => {
 
     it('dashboard close-rate insight includes SETTLED_INCOME (cobrada+pagada)', () => {
       const src = readFileSync(
-        resolve(__dirname, '../../lib/queries/dashboard.ts'),
+        resolve(__dirname, '../../lib/queries/dashboard-activity.ts'),
         'utf-8',
       );
       expect(src).toMatch(/SETTLED_INCOME_STATUSES/);
