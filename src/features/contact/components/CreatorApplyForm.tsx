@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { Fragment, useState } from 'react';
 import Link from 'next/link';
 import { useForm, useWatch } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -135,7 +135,7 @@ export function CreatorApplyForm() {
       </div>
 
       {step === 1 ? (
-        <>
+        <Fragment key="identity">
           <div>
             <label htmlFor="apply-name" className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
               Nombre
@@ -186,9 +186,9 @@ export function CreatorApplyForm() {
           <button type="button" onClick={() => { void continueToProfile(); }} className="w-full min-h-11 py-3.5 rounded-full font-display font-bold uppercase tracking-wider text-sm text-white bg-sp-grad hover:opacity-90 transition-opacity">
             Continuar →
           </button>
-        </>
+        </Fragment>
       ) : (
-        <>
+        <Fragment key="profile">
           <div>
             <label htmlFor="apply-content" className="block text-xs font-semibold uppercase tracking-widest text-sp-muted mb-1.5">
               Juego o contenido principal
@@ -242,7 +242,7 @@ export function CreatorApplyForm() {
               {status === 'loading' ? 'Enviando...' : 'Enviar mi perfil'}
             </button>
           </div>
-        </>
+        </Fragment>
       )}
 
     </form>
