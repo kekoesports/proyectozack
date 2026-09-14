@@ -4,6 +4,7 @@ import { IntakeTelegramConnection, IntakeTelegramReceipt } from '@/lib/schemas/i
 import type { IntakeSender } from './delivery';
 
 export const sendIntakeTelegram: IntakeSender = async (input) => {
+  if (env.CREATOR_INTAKE_TELEGRAM_ENABLED === false) return null;
   const token = env.CREATOR_INTAKE_TELEGRAM_TOKEN;
   const connection = env.CREATOR_INTAKE_TELEGRAM_CONNECTION;
   if (input.channel !== 'telegram' || !env.CREATOR_INTAKE_ENABLED || !env.CREATOR_INTAKE_SEND_ENABLED || !token || !connection

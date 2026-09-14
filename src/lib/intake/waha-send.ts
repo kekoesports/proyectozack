@@ -21,7 +21,7 @@ export const sendIntakeWaha: IntakeSender = async (input) => {
   if (input.kind !== 'reply') return null;
   const headers = { 'X-Api-Key': key, 'Content-Type': 'application/json' };
   try {
-    if (!await verifyIntakeOwnerAlert()) throw new IntakeSendNotAttempted();
+    if (env.CREATOR_INTAKE_TELEGRAM_ENABLED !== false && !await verifyIntakeOwnerAlert()) throw new IntakeSendNotAttempted();
     const check = await fetch(`${base}/api/sessions/${encodeURIComponent(session)}`, {
       headers, signal: AbortSignal.timeout(5000), cache: 'no-store',
     });

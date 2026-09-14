@@ -4,6 +4,7 @@ jest.mock('@/lib/env', () => ({ env: { CREATOR_INTAKE_ENABLED: true, CREATOR_INT
   CREATOR_INTAKE_WAHA_KEY: 'TEST-key', CREATOR_INTAKE_WAHA_SESSION: 'default',
   CREATOR_INTAKE_WHATSAPP_PHONE: '34000000000', CREATOR_INTAKE_WHATSAPP_CHATS: '34000000001',
   CREATOR_INTAKE_WAHA_REPLY_TO_INBOUND: false,
+  CREATOR_INTAKE_TELEGRAM_ENABLED: true,
 } }));
 jest.mock('@/lib/intake/owner-alert', () => ({ verifyIntakeOwnerAlert: jest.fn(), sendIntakeOwnerAlert: jest.fn() }));
 import { sendIntakeWaha } from '@/lib/intake/waha-send';
@@ -13,8 +14,17 @@ const originalFetch = global.fetch;
 const fetchMock = jest.fn<ReturnType<typeof fetch>, Parameters<typeof fetch>>();
 const input = { kind: 'reply', text: 'TEST respuesta', channel: 'whatsapp' as const,
   accountId: 'waha:34000000000', chatId: '34000000001', conversationId: 'TEST-id', lastInboundAt: new Date() };
-beforeEach(() => { jest.clearAllMocks(); jest.replaceProperty(env, 'CREATOR_INTAKE_WAHA_REPLY_TO_INBOUND', false); global.fetch = fetchMock; jest.mocked(verifyIntakeOwnerAlert).mockResolvedValue(true); });
+beforeEach(() => { jest.clearAllMocks(); jest.replaceProperty(env, 'CREATOR_INTAKE_TELEGRAM_ENABLED', true); jest.replaceProperty(env, 'CREATOR_INTAKE_WAHA_REPLY_TO_INBOUND', false); global.fetch = fetchMock; jest.mocked(verifyIntakeOwnerAlert).mockResolvedValue(true); });
 afterAll(() => { global.fetch = originalFetch; });
+it('keeps WhatsApp independent of disabled Telegram while checking the company session', async () => {
+  jest.replaceProperty(env, 'CREATOR_INTAKE_TELEGRAM_ENABLED', false);
+  jest.mocked(verifyIntakeOwnerAlert).mockRejectedValue(new Error('Telegram unavailable'));
+  fetchMock.mockResolvedValueOnce(Response.json({ name: 'default', status: 'WORKING', me: { id: '34000000000@c.us' } }))
+    .mockResolvedValueOnce(Response.json({ id: 'TEST-WHATSAPP-ONLY' }));
+  expect(await sendIntakeWaha(input)).toBe('TEST-WHATSAPP-ONLY');
+  expect(verifyIntakeOwnerAlert).not.toHaveBeenCalled();
+  expect(fetchMock).toHaveBeenCalledTimes(2);
+});
 it('rejects wrong channel, account and recipient without a network request', async () => {
   expect(await sendIntakeWaha({ ...input, channel: 'telegram' })).toBeNull();
   expect(await sendIntakeWaha({ ...input, accountId: 'other' })).toBeNull();

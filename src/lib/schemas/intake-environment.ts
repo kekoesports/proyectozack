@@ -3,6 +3,7 @@ import { z } from 'zod';
 /** Intake validation only; runtime values remain centralized in lib/env.ts. */
 export const intakeEnvironment = {
   CREATOR_INTAKE_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
+  CREATOR_INTAKE_TELEGRAM_ENABLED: z.enum(['true', 'false']).default('true').transform((v) => v === 'true'),
   CREATOR_INTAKE_AI_ENABLED: z.enum(['true', 'false']).default('false').transform((v) => v === 'true'),
   CREATOR_INTAKE_AI_MODEL: z.literal('gemini-3.1-flash-lite').optional(),
   CREATOR_INTAKE_AI_PILOT_DIR: z.string().min(1).optional(),

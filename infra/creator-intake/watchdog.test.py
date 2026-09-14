@@ -7,6 +7,21 @@ watchdog = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(watchdog)
 
 class WatchdogTests(unittest.TestCase):
+    def test_telegram_disabled_preserves_monitoring_without_notifications(self):
+        self.env.append('CREATOR_INTAKE_TELEGRAM_ENABLED=false')
+        self.health['unanswered'] = 1
+        watchdog.main()
+        self.assertEqual(self.sent(), [])
+        self.assertFalse(any('api.telegram.org' in call[0] for call in self.calls))
+        self.assertFalse(json.loads(watchdog.STATE.read_text())['telegram_notifications_enabled'])
+        self.assertTrue(json.loads(watchdog.STATE.read_text())['issues'])
+
+    def test_operator_mute_file_prevents_notifications(self):
+        (watchdog.ROOT / 'telegram-disabled').touch()
+        self.health['failed'] = 1
+        watchdog.main()
+        self.assertEqual(self.sent(), [])
+
     def setUp(self):
         self.temp = tempfile.TemporaryDirectory()
         watchdog.ROOT = pathlib.Path(self.temp.name)

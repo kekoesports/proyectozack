@@ -38,6 +38,7 @@ function shouldShow(): boolean {
 export function NewsletterPopup() {
   const [visible,  setVisible]  = useState(false);
   const [email,    setEmail]    = useState('');
+  const [honeypot, setHoneypot] = useState('');
   const [nlCheck,  setNlCheck]  = useState(false);
   const [mktCheck, setMktCheck] = useState(false);
   const [loading,  setLoading]  = useState(false);
@@ -82,7 +83,7 @@ export function NewsletterPopup() {
       const res = await fetch('/api/newsletter/subscribe', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, consentNewsletter: true, consentMarketing: mktCheck, honeypot: '' }),
+        body: JSON.stringify({ email, consentNewsletter: true, consentMarketing: mktCheck, honeypot }),
       });
       if (res.ok) {
         localStorage.setItem(STORAGE_KEY_SUBSCRIBED, String(Date.now()));
@@ -158,7 +159,8 @@ export function NewsletterPopup() {
                 autoComplete="off"
                 aria-hidden="true"
                 className="sr-only"
-                onChange={() => {}}
+                value={honeypot}
+                onChange={(e) => setHoneypot(e.target.value)}
               />
 
               {/* Email */}
@@ -174,6 +176,7 @@ export function NewsletterPopup() {
               {/* Newsletter (obligatorio) */}
               <button
                 type="button"
+                aria-pressed={nlCheck}
                 onClick={() => setNlCheck(v => !v)}
                 className="flex items-start gap-2.5 cursor-pointer text-left w-full"
               >
@@ -187,6 +190,7 @@ export function NewsletterPopup() {
               {/* Marketing (opcional) */}
               <button
                 type="button"
+                aria-pressed={mktCheck}
                 onClick={() => setMktCheck(v => !v)}
                 className="flex items-start gap-2.5 cursor-pointer text-left w-full"
               >

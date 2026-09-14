@@ -48,7 +48,7 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
     watch,
     reset,
     formState: { errors },
-  } = useForm<ContactForm>({ resolver: zodResolver(contactSchema), ...(defaultValues ? { defaultValues } : {}) });
+  } = useForm<ContactForm>({ resolver: zodResolver(contactSchema), shouldUnregister: true, ...(defaultValues ? { defaultValues } : {}) });
 
   // eslint-disable-next-line react-hooks/incompatible-library -- React Hook Form watch() no es memoizable, es el comportamiento esperado
   const [selectedType, selectedPlatform] = watch(['type', 'platform']);

@@ -1,10 +1,11 @@
 import { TRPCError } from '@trpc/server';
 
-const mockSwitches = { enabled: true, send: false };
+const mockSwitches = { enabled: true, send: false, telegram: true };
 
 jest.mock('server-only', () => ({}));
 jest.mock('@/lib/env', () => ({ env: {
   get CREATOR_INTAKE_ENABLED() { return mockSwitches.enabled; },
+  get CREATOR_INTAKE_TELEGRAM_ENABLED() { return mockSwitches.telegram; },
   get CREATOR_INTAKE_SEND_ENABLED() { return mockSwitches.send; },
   CREATOR_INTAKE_TELEGRAM_SECRET: 'TEST_123456789012345678901234567890123456',
   CREATOR_INTAKE_TELEGRAM_CONNECTION: 'TEST-connection', CREATOR_INTAKE_TELEGRAM_OWNER: '999',
@@ -36,11 +37,19 @@ const update = () => ({ update_id: 1, business_message: {
 beforeEach(() => {
   jest.clearAllMocks();
   mockSwitches.enabled = true;
+  mockSwitches.telegram = true;
   mockSwitches.send = false;
   ingest.mockResolvedValue({ id: 'TEST-conversation', duplicate: false });
 });
 
 describe('creator intake webhook authentication and boundaries', () => {
+  it('acknowledges retired Telegram updates without processing or sending', async () => {
+    mockSwitches.telegram = false;
+    const response = await POST(request(JSON.stringify(update())));
+    expect(await response.json()).toEqual({ ok: true, ignored: true, reason: 'disabled' });
+    expect(ingest).not.toHaveBeenCalled();
+    expect(delivery).not.toHaveBeenCalled();
+  });
   it('fails closed before processing when disabled', async () => {
     mockSwitches.enabled = false;
     expect((await POST(request(JSON.stringify(update())))).status).toBe(503);

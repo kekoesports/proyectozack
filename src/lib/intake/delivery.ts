@@ -2,6 +2,7 @@ import { and, eq, sql } from 'drizzle-orm';
 import { intakeConversations, intakeOutbox } from '@/db/schema/creatorIntake';
 import type { IntakeDatabase } from './repository';
 import { IntakeSendNotAttempted } from './send-errors';
+import { env } from '@/lib/env';
 
 export type IntakeSender = (input: {
   kind: string; text: string; accountId: string; chatId: string; conversationId: string;
@@ -13,6 +14,13 @@ export async function deliverIntake(database: IntakeDatabase, conversationId: st
   channel: 'telegram' | 'whatsapp' = 'telegram'): Promise<void> {
   // Re-read alerts after replies so a failed reply can notify in this same run.
   for (const kind of ['reply', 'alert']) {
+    // Muting Telegram preserves CRM handoff state without inventing a delivery receipt.
+    if (env.CREATOR_INTAKE_TELEGRAM_ENABLED === false && (kind === 'alert' || channel === 'telegram')) {
+      await database.update(intakeOutbox).set({ status: 'cancelled' }).where(and(
+        eq(intakeOutbox.conversationId, conversationId), eq(intakeOutbox.kind, kind), eq(intakeOutbox.status, 'pending'),
+      ));
+      continue;
+    }
     const pending = await database.select().from(intakeOutbox).where(and(
       eq(intakeOutbox.conversationId, conversationId), eq(intakeOutbox.kind, kind), eq(intakeOutbox.status, 'pending'),
     ));

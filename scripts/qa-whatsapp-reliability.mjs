@@ -6,6 +6,9 @@ import { Pool } from 'pg';
 import { drizzle } from 'drizzle-orm/node-postgres';
 import { eq } from 'drizzle-orm';
 const require = createRequire(import.meta.url);
+// The shared environment is validated when delivery is imported; never inherit a real DB here.
+process.env.DATABASE_URL = 'postgresql://fixture:fixture@127.0.0.1:55447/fixture';
+if (process.argv.includes('--telegram-disabled')) process.env.CREATOR_INTAKE_TELEGRAM_ENABLED = 'false';
 const schema = { ...require('../src/db/schema/creatorIntake.ts'), ...require('../src/db/schema/intakeReliability.ts') };
 const { createIntakeRepository } = require('../src/lib/intake/repository.ts');
 const { deliverIntake } = require('../src/lib/intake/delivery.ts');
@@ -162,6 +165,23 @@ try {
   } };
   assert.equal(await ensureWahaIdentity(database, outboundOnly, outboundOnly, company, true), null);
   evidence.push('new non-pilot inbound persists and replies once; replay, human pause and outbound-only exclusion');
+  if (process.argv.includes('--telegram-disabled')) {
+    const mutedEvent = { ...generalEvent, chatId: '34999000005', externalId: 'TEST-muted-handoff', text: 'Quiero hablar con una persona' };
+    const muted = await repository.ingest(mutedEvent, async () => ({ profile: {}, evidence: {}, intent: 'human' }));
+    let replyCount = 0;
+    const onlyWhatsApp = async input => { assert.equal(input.kind, 'reply'); return `TEST-muted-${++replyCount}`; };
+    await deliverIntake(database, muted.id, onlyWhatsApp, new Date(config.startAt), 'whatsapp');
+    await repository.ingest(mutedEvent, hello);
+    await deliverIntake(database, muted.id, onlyWhatsApp, new Date(config.startAt), 'whatsapp');
+    const mutedDetail = await repository.detail(muted.id);
+    assert.equal(replyCount, 1);
+    assert.equal(mutedDetail.conversation.state, 'waiting_human');
+    const mutedAlert = mutedDetail.outbox.find(item => item.kind === 'alert');
+    assert.equal(mutedAlert.status, 'cancelled');
+    assert.equal(mutedAlert.receipt, null);
+    assert.equal(mutedAlert.acceptedAt, null);
+    evidence.push('Telegram disabled: WhatsApp handoff replies once, CRM review persists, alert cancelled without a false receipt');
+  }
   console.log(JSON.stringify({ passed: evidence.length, cases: evidence, realProviderCalls: 0, productionWrites: 0 }, null, 2));
 } finally {
   await pool.end();

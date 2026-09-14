@@ -14,7 +14,8 @@ export const sendIntakeWhatsApp: IntakeSender = async (input) => {
     || input.accountId !== phoneId || !env.CREATOR_INTAKE_WHATSAPP_CHATS?.split(',').includes(input.chatId)
     || !Number.isFinite(age) || age < 0 || age >= 24 * 60 * 60_000) return null;
   if (input.kind === 'alert') return sendIntakeOwnerAlert(input.text, input.conversationId);
-  if (input.kind !== 'reply' || !await verifyIntakeOwnerAlert()) return null;
+  if (input.kind !== 'reply'
+    || (env.CREATOR_INTAKE_TELEGRAM_ENABLED !== false && !await verifyIntakeOwnerAlert())) return null;
   // The app-only asset is insufficient: verify the actual API phone and coexistence.
   const base = `https://graph.facebook.com/v26.0/${phoneId}`;
   const headers = { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' };

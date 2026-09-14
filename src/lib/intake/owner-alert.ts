@@ -4,6 +4,7 @@ import { IntakeTelegramConnection, IntakeTelegramReceipt } from '@/lib/schemas/i
 
 /** Dedicated private owner destination; never a creator chat or group. */
 export async function verifyIntakeOwnerAlert(): Promise<boolean> {
+  if (env.CREATOR_INTAKE_TELEGRAM_ENABLED === false) return false;
   const token = env.CREATOR_INTAKE_TELEGRAM_TOKEN;
   const connection = env.CREATOR_INTAKE_TELEGRAM_CONNECTION;
   const owner = env.CREATOR_INTAKE_TELEGRAM_OWNER;
@@ -20,6 +21,7 @@ export async function verifyIntakeOwnerAlert(): Promise<boolean> {
 }
 
 export async function sendIntakeOwnerAlert(text: string, conversationId: string): Promise<string | null> {
+  if (env.CREATOR_INTAKE_TELEGRAM_ENABLED === false) return null;
   if (!env.CREATOR_INTAKE_ENABLED || !env.CREATOR_INTAKE_SEND_ENABLED || !await verifyIntakeOwnerAlert()) return null;
   const response = await fetch(`https://api.telegram.org/bot${env.CREATOR_INTAKE_TELEGRAM_TOKEN}/sendMessage`, {
     method: 'POST', headers: { 'Content-Type': 'application/json' },

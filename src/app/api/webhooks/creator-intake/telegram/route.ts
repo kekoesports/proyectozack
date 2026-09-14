@@ -16,6 +16,7 @@ export const dynamic = 'force-dynamic';
 export const maxDuration = 60;
 
 export async function POST(request: Request): Promise<Response> {
+  if (env.CREATOR_INTAKE_TELEGRAM_ENABLED === false) return Response.json({ ok: true, ignored: true, reason: 'disabled' });
   // Provider webhook authenticates with its dedicated Telegram secret, never a CRM session bypass.
   const secret = env.CREATOR_INTAKE_TELEGRAM_SECRET;
   const connection = env.CREATOR_INTAKE_TELEGRAM_CONNECTION;

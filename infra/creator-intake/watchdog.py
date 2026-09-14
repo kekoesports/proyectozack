@@ -118,7 +118,8 @@ def main(self_test=False):
     fingerprint = '|'.join(sorted(issues))
     should_alert = fingerprint and (fingerprint != state.get('alert_fingerprint') or now - state.get('last_alert', 0) > 21600)
     recovered = not fingerprint and state.get('alert_fingerprint')
-    if should_alert or recovered:
+    notifications_enabled = env.get('CREATOR_INTAKE_TELEGRAM_ENABLED', 'true') != 'false' and not (ROOT / 'telegram-disabled').exists()
+    if notifications_enabled and (should_alert or recovered):
         token = env.get('CREATOR_INTAKE_TELEGRAM_TOKEN')
         owner = env.get('CREATOR_INTAKE_TELEGRAM_OWNER')
         if token and owner and owner == env.get('CREATOR_INTAKE_TELEGRAM_ALERT_CHAT'):
@@ -136,7 +137,7 @@ def main(self_test=False):
                     state['last_alert'] = now
                     state['last_alert_accepted'] = True
                     state['last_alert_receipt'] = (ack.get('result') or {}).get('message_id')
-    state.update({'checked_at': now, 'session': session_state, 'worker_ok': worker_ok,
+    state.update({'checked_at': now, 'session': session_state, 'worker_ok': worker_ok, 'telegram_notifications_enabled': notifications_enabled,
         'issues': issues, 'memory_available_mb': mem['MemAvailable'] // 1024,
         'active_builds': builds, 'kernel_oom_visibility': 'available' if kernel.get('available') else 'unavailable'})
     temporary = STATE.with_suffix('.tmp')
