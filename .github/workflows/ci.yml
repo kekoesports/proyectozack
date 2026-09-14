@@ -114,6 +114,10 @@ jobs:
       - run: npm run test:ci -- --maxWorkers=2
       - name: Archive extraction security regression
         run: node --test scripts/dependency-security.test.mjs
+      - name: Install isolated PDF/OCR browsers
+        run: npx playwright install --with-deps chromium webkit
+      - name: Real PDF extraction and browser OCR
+        run: node --import tsx scripts/pdf-browser-smoke.mjs
       - name: Studio tenant and agency isolation (in-memory PostgreSQL)
         run: |
           npm run test:studio:isolation
