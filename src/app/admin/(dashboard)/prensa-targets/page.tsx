@@ -11,7 +11,7 @@ export default async function AdminPressTargetsPage(): Promise<React.ReactElemen
     <div className="space-y-6">
       <div className="flex items-baseline gap-4 mb-6">
         <h1 className="font-display text-3xl font-black uppercase text-sp-admin-text">
-          Prensa y artículos
+          Prensa y difusión
         </h1>
         <span className="text-xs text-sp-admin-muted tabular-nums">
           {items.length} {items.length === 1 ? 'medio' : 'medios'}
@@ -19,22 +19,22 @@ export default async function AdminPressTargetsPage(): Promise<React.ReactElemen
       </div>
 
       <p className="text-sm text-sp-admin-muted -mt-3">
-        Prepara historias de SocialPro y propuestas para medios. Guardar un borrador no lo envía ni lo publica. Cada medio decide si publica y si incluye enlace.
+        Propuestas para periódicos, medios y páginas de anuncios. Estos borradores se gestionan aquí, separados de las noticias de la web y del boletín de suscriptores. Guardar no envía ni publica.
       </p>
 
       {drafts.length > 0 && (
-        <section aria-label="Artículos de prensa preparados" className="space-y-3">
-          <h2 className="text-lg font-bold text-sp-admin-text">Artículos preparados</h2>
+        <section aria-label="Propuestas para medios" className="space-y-3">
+          <h2 className="text-lg font-bold text-sp-admin-text">Propuestas preparadas</h2>
           {drafts.map((draft) => (
             <article key={draft.id} className="rounded-xl border border-sp-admin-border bg-sp-admin-card p-5 space-y-3">
-              <span className="text-xs font-semibold text-amber-400">Borrador en el CRM</span>
+              <span className="text-xs font-semibold text-amber-400">Documento interno para medios</span>
               <h3 className="text-lg font-bold text-sp-admin-text">{draft.title}</h3>
               <p className="text-sm text-sp-admin-muted">{draft.excerpt}</p>
               <details className="text-sm text-sp-admin-text">
                 <summary className="cursor-pointer font-semibold">Leer artículo completo</summary>
                 <div className="mt-3 whitespace-pre-wrap break-words leading-relaxed">{draft.bodyMd}</div>
               </details>
-              <Link href={`/admin/noticias/${draft.id}/edit`} className="inline-block text-sm font-semibold text-sp-admin-accent hover:underline">Editar artículo</Link>
+              <Link href={`/admin/prensa-targets/articulos/${draft.id}`} className="inline-block text-sm font-semibold text-sp-admin-accent hover:underline">Editar propuesta</Link>
             </article>
           ))}
         </section>

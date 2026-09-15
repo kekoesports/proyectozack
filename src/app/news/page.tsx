@@ -8,6 +8,7 @@ import { getTopRanking } from '@/lib/queries/rankingEntries';
 import { getFeaturedMatch } from '@/lib/queries/matches';
 import { db } from '@/lib/db';
 import { posts } from '@/db/schema';
+import { webEditorialCondition } from '@/lib/queries/content-channel';
 import { eq, and, isNotNull, desc, lte } from 'drizzle-orm';
 import { isNewsCategorySlug, type NewsCategorySlug } from '@/lib/utils/news';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
@@ -124,7 +125,7 @@ export default async function NewsPage({ searchParams }: PageProps) {
     db.select({
       id: posts.id, slug: posts.slug, title: posts.title, excerpt: posts.excerpt,
       coverUrl: posts.coverUrl, publishedAt: posts.publishedAt, blocksJson: posts.blocksJson,
-    }).from(posts).where(and(eq(posts.status, 'published'), eq(posts.vertical, 'news'), isNotNull(posts.blocksJson), lte(posts.publishedAt, now))).orderBy(desc(posts.publishedAt)).limit(6).catch(() => []),
+    }).from(posts).where(and(webEditorialCondition, eq(posts.status, 'published'), eq(posts.vertical, 'news'), isNotNull(posts.blocksJson), lte(posts.publishedAt, now))).orderBy(desc(posts.publishedAt)).limit(6).catch(() => []),
   ]);
 
   // Filtrar solo los que tienen embed YouTube

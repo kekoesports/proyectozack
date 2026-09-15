@@ -4,6 +4,7 @@ import { and, count, desc, eq, gt, inArray, isNull, lt } from 'drizzle-orm';
 
 import { agentEvents, newsAlerts, posts, pressTargets, targets } from '@/db/schema';
 import { db } from '@/lib/db';
+import { webEditorialCondition } from '@/lib/queries/content-channel';
 
 function firstCount(rows: readonly { total: number }[]): number {
   return rows[0]?.total ?? 0;
@@ -51,6 +52,7 @@ export async function getOperationsSummary(): Promise<{
       isNull(newsAlerts.dismissedAt),
     )),
     db.select({ total: count() }).from(posts).where(and(
+      webEditorialCondition,
       eq(posts.status, 'published'),
       gt(posts.publishedAt, now),
       lt(posts.publishedAt, in14Days),

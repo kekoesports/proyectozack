@@ -1,5 +1,6 @@
 import Link from 'next/link';
-import { notFound } from 'next/navigation';
+import { notFound, redirect } from 'next/navigation';
+import { isPressOutreach } from '@/lib/content-channel';
 import { eq } from 'drizzle-orm';
 import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
@@ -17,6 +18,7 @@ export default async function EditNoticiaPage({ params }: Props) {
 
   const [post] = await db.select().from(posts).where(eq(posts.id, postId)).limit(1);
   if (!post) notFound();
+  if (isPressOutreach(post)) redirect(`/admin/prensa-targets/articulos/${post.id}`);
 
   return (
     <div>

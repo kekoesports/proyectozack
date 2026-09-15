@@ -1,4 +1,5 @@
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+import { webEditorialCondition } from '@/lib/queries/content-channel';
 import { db } from '@/lib/db';
 import { posts } from '@/db/schema';
 import type { PostBlocks } from '@/features/news/components/article-blocks/types';
@@ -26,7 +27,7 @@ export async function getPostBlocks(slug: string): Promise<PostBlocks | null> {
   const row = await db
     .select({ blocksJson: posts.blocksJson })
     .from(posts)
-    .where(eq(posts.slug, slug))
+    .where(and(eq(posts.slug, slug), webEditorialCondition))
     .limit(1);
 
   const dbBlocks = row[0]?.blocksJson;

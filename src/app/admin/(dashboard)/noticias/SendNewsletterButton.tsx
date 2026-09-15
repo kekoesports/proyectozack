@@ -61,7 +61,7 @@ export function SendNewsletterButton({ postId, postTitle, totalSubscribers, alre
         onClick={() => setState('confirm')}
         className="text-xs font-semibold text-sp-admin-accent hover:underline whitespace-nowrap"
       >
-        Enviar NL
+        Enviar a suscriptores
       </button>
 
       {/* Modal de confirmación */}
@@ -74,7 +74,7 @@ export function SendNewsletterButton({ postId, postTitle, totalSubscribers, alre
         >
           <div className="w-full max-w-sm bg-sp-admin-card border border-sp-admin-border rounded-2xl p-6 shadow-xl">
             <h2 className="font-display text-xl font-black uppercase text-sp-admin-text mb-1">
-              Enviar newsletter
+                Enviar boletín a suscriptores
             </h2>
             <p className="text-sm text-sp-admin-muted mb-4 line-clamp-2">&ldquo;{postTitle}&rdquo;</p>
 

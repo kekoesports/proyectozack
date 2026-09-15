@@ -1,6 +1,7 @@
 import { and, eq, ne, desc, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { posts } from '@/db/schema';
+import { webEditorialCondition } from '@/lib/queries/content-channel';
 import type { PostWithTalents, TalentAvatar } from '@/lib/queries/posts';
 import { deriveNewsCategory, type NewsCategory } from '@/lib/utils/news';
 import { tagLabel } from './tags';
@@ -66,6 +67,7 @@ async function findRelatedByTags(
     .where(
       and(
         eq(posts.status, 'published'),
+        webEditorialCondition,
         eq(posts.vertical, 'news'),
         ne(posts.slug, currentSlug),
         sql`(${posts.tags})::jsonb ?| ${tagsArray}`,

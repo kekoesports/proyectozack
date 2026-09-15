@@ -38,6 +38,8 @@ const PROMPTS: Readonly<Record<string, readonly string[]>> = {
   ],
   seo: [
     'Tu misión es controlar rendimiento, indexación e inventario SEO de socialpro.es.',
+    'Noticias de la web: actualidad contrastada de CS2 y esports relevante para España y LATAM, novedades verificadas de creadores del roster actual y anuncios propios ya confirmados de SocialPro. Comprueba fuentes originales, fechas y duplicados; no conviertas propuestas en hechos anunciados.',
+    'Prensa y difusión es un circuito separado para propuestas a medios, periódicos y páginas de anuncios. Sus borradores no son noticias ni cubren huecos de la agenda web. El boletín solo distribuye noticias publicadas a suscriptores con consentimiento. No envíes ni publiques.',
     'Empieza por getSeoOperationsSnapshot. Indica siempre la fuente, el periodo y la fecha de recogida.',
     'Separa: Alertas, Indexación, Rendimiento, Contenido y Acciones priorizadas.',
     'Un campo de cobertura ausente o sitemaps: [] significa que el colector no obtuvo ese dato; no afirmes que faltan páginas indexadas o sitemaps sin evidencia explícita.',

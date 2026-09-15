@@ -10,6 +10,7 @@ import { auth } from '@/lib/auth';
 import { isRole, IS_DEV } from '@/lib/auth-guard';
 import { PERMISSIONS } from '@/lib/permissions';
 import { sendNewsletterPostEmail } from '@/lib/email';
+import { isPressOutreach } from '@/lib/content-channel';
 
 const schema = z.object({
   postId: z.number().int().positive(),
@@ -54,7 +55,7 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
 
   // Verificar que el post existe y está publicado
   const [post] = await db
-    .select({ id: posts.id, title: posts.title, excerpt: posts.excerpt, slug: posts.slug, coverUrl: posts.coverUrl, author: posts.author, status: posts.status })
+    .select({ id: posts.id, title: posts.title, excerpt: posts.excerpt, slug: posts.slug, coverUrl: posts.coverUrl, author: posts.author, status: posts.status, tags: posts.tags, vertical: posts.vertical, publishedAt: posts.publishedAt })
     .from(posts)
     .where(eq(posts.id, postId))
     .limit(1);
@@ -62,8 +63,8 @@ export async function POST(req: NextRequest): Promise<NextResponse> {
   if (!post) {
     return NextResponse.json({ error: 'Noticia no encontrada.' }, { status: 404 });
   }
-  if (post.status !== 'published') {
-    return NextResponse.json({ error: 'La noticia debe estar publicada para enviarla.' }, { status: 422 });
+  if (isPressOutreach(post) || post.vertical !== 'news' || post.status !== 'published' || !post.publishedAt || post.publishedAt > new Date()) {
+    return NextResponse.json({ error: 'El boletín solo admite noticias de la web ya publicadas. Las propuestas para medios se gestionan en Prensa y difusión.' }, { status: 422 });
   }
 
   // Idempotencia — unique constraint en postId

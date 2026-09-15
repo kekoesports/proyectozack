@@ -2,7 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
-import { eq } from 'drizzle-orm';
+import { and, eq } from 'drizzle-orm';
+import { isPressOutreach } from '@/lib/content-channel';
+import { webEditorialCondition } from '@/lib/queries/content-channel';
 import { requirePermission } from '@/lib/permissions';
 import { db } from '@/lib/db';
 import { posts, editorialSlots } from '@/db/schema';
@@ -36,6 +38,9 @@ export async function createPostAction(formData: FormData): Promise<ActionResult
   }
 
   const data = parsed.data;
+  if (isPressOutreach(data)) {
+    return { ok: false, error: 'Las propuestas para medios se gestionan en Prensa y difusión, no en Noticias.' };
+  }
 
   if (missingPublishedCover(data.status, data.coverUrl)) {
     return {
@@ -110,8 +115,13 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
   // 2. If publishing for the first time (no existing date) → set NOW()
   // 3. If explicit future date sent from form → use it (intentional scheduling)
   // 4. If changing to draft → clear the date
-  const currentRow = await db.select({ publishedAt: posts.publishedAt, status: posts.status, slug: posts.slug })
+  const currentRow = await db.select({ publishedAt: posts.publishedAt, status: posts.status, slug: posts.slug, tags: posts.tags })
     .from(posts).where(eq(posts.id, id)).limit(1);
+  const current = currentRow[0];
+  if (!current) return { ok: false, error: 'Noticia no encontrada' };
+  if (isPressOutreach(current) || isPressOutreach({ slug: data.slug ?? current.slug, tags: data.tags ?? current.tags })) {
+    return { ok: false, error: 'Las propuestas para medios se editan en Prensa y difusión y no se publican como noticias.' };
+  }
   const currentSlug = currentRow[0]?.slug;
   const existingPublishedAt = currentRow[0]?.publishedAt ?? null;
   const alreadyPublished    = !!(existingPublishedAt && existingPublishedAt <= new Date());
@@ -137,7 +147,7 @@ export async function updatePostAction(formData: FormData): Promise<ActionResult
       talentSlugs: data.talentSlugs ?? null,
       blocksJson: data.blocksJson ?? null,
     })
-    .where(eq(posts.id, id));
+    .where(and(eq(posts.id, id), webEditorialCondition));
 
   // Revalidate the new slug (from form) AND the old slug in case it changed
   revalidateNews(data.slug ?? currentSlug);
@@ -154,6 +164,9 @@ export async function deletePostAction(formData: FormData): Promise<ActionResult
   const idRaw = formData.get('id');
   const id = typeof idRaw === 'string' ? parseInt(idRaw, 10) : NaN;
   if (isNaN(id)) return { ok: false, error: 'ID inválido' };
+
+  const [post] = await db.select({ slug: posts.slug, tags: posts.tags }).from(posts).where(eq(posts.id, id)).limit(1);
+  if (!post || isPressOutreach(post)) return { ok: false, error: 'Esta entrada no pertenece a Noticias.' };
 
   // Limpiar slots que apunten a este post antes de borrar
   await db.update(editorialSlots).set({ postId: null }).where(eq(editorialSlots.postId, id));
@@ -191,6 +204,11 @@ export async function updateEditorialSlotAction(formData: FormData): Promise<voi
   if (!parsed.success) return;
 
   const { slot, postId } = parsed.data;
+  if (postId !== null) {
+    const [post] = await db.select({ slug: posts.slug, tags: posts.tags }).from(posts)
+      .where(and(eq(posts.id, postId), eq(posts.vertical, 'news'), eq(posts.status, 'published'), webEditorialCondition)).limit(1);
+    if (!post) return;
+  }
 
   await db
     .update(editorialSlots)

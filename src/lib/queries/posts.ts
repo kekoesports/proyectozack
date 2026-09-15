@@ -1,4 +1,5 @@
 import { cache } from 'react';
+import { webEditorialCondition } from './content-channel';
 import { eq, desc, inArray, and, ne, lte, sql } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { posts, talents } from '@/db/schema';
@@ -69,7 +70,7 @@ export async function getPostSlugsByVertical(
   return db
     .select({ slug: posts.slug, updatedAt: posts.updatedAt })
     .from(posts)
-    .where(and(eq(posts.status, 'published'), eq(posts.vertical, vertical)));
+    .where(and(webEditorialCondition, eq(posts.status, 'published'), eq(posts.vertical, vertical)));
 }
 
 export async function getPostSlugs(): Promise<{ slug: string; updatedAt: Date }[]> {
@@ -85,7 +86,7 @@ export async function getNewsUniqueTags(): Promise<string[]> {
   const rows = await db
     .select({ tags: posts.tags })
     .from(posts)
-    .where(and(eq(posts.status, 'published'), eq(posts.vertical, 'news')));
+    .where(and(webEditorialCondition, eq(posts.status, 'published'), eq(posts.vertical, 'news')));
   return [...new Set(rows.flatMap((r) => r.tags ?? []))].filter(Boolean);
 }
 
@@ -96,7 +97,7 @@ export async function getPosts(): Promise<PostListItem[]> {
   const now = new Date();
   const rows = await db.query.posts.findMany({
     where: and(
-      eq(posts.status, 'published'),
+      webEditorialCondition, eq(posts.status, 'published'),
       eq(posts.vertical, 'blog'),
       lte(posts.publishedAt, now),
     ),
@@ -113,7 +114,7 @@ export async function getNewsPosts(): Promise<PostWithTalents[]> {
   const now = new Date();
   const rows = await db.query.posts.findMany({
     where: and(
-      eq(posts.status, 'published'),
+      webEditorialCondition, eq(posts.status, 'published'),
       eq(posts.vertical, 'news'),
       lte(posts.publishedAt, now),
     ),
@@ -131,7 +132,7 @@ export async function getNewsPosts(): Promise<PostWithTalents[]> {
  */
 export const getPostBySlug = cache(async (slug: string): Promise<PostWithTalents | undefined> => {
   const row = await db.query.posts.findFirst({
-    where: and(eq(posts.slug, slug), eq(posts.status, 'published')),
+    where: and(eq(posts.slug, slug), webEditorialCondition, eq(posts.status, 'published')),
   });
   if (!row) return undefined;
   const [enriched] = await attachTalents([row]);
@@ -153,7 +154,7 @@ export const getRelatedPosts = cache(async (currentSlug: string, limit = 3): Pro
 
   const rows = await db.query.posts.findMany({
     where: and(
-      eq(posts.status, 'published'),
+      webEditorialCondition, eq(posts.status, 'published'),
       eq(posts.vertical, 'blog'),
       ne(posts.slug, currentSlug),
     ),
@@ -181,7 +182,7 @@ export async function getStatsPosts(limit = 8): Promise<PostListItem[]> {
   const now = new Date();
   const rows = await db.query.posts.findMany({
     where: and(
-      eq(posts.status, 'published'),
+      webEditorialCondition, eq(posts.status, 'published'),
       eq(posts.vertical, 'news'),
       eq(posts.contentType, 'estadisticas'),
       lte(posts.publishedAt, now),
@@ -207,7 +208,7 @@ export async function getRelatedNewsPosts(
 
   const rows = await db.query.posts.findMany({
     where: and(
-      eq(posts.status, 'published'),
+      webEditorialCondition, eq(posts.status, 'published'),
       eq(posts.vertical, 'news'),
       ne(posts.slug, currentSlug),
     ),

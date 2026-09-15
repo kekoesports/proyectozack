@@ -83,7 +83,7 @@ describe('sprint2 — hasPermission + nav R05', () => {
       ['Leads emails', '/admin/leads'],
       ['Candidaturas', '/admin/candidaturas'],
       ['Leads CC', '/admin/targets'],
-      ['Prensa targets', '/admin/prensa-targets'],
+      ['Prensa y difusión', '/admin/prensa-targets'],
       ['Partners CS2', '/admin/partner-leads'],
     ]);
     expect(more.some((item) => item.label === 'Creadores Target')).toBe(false);

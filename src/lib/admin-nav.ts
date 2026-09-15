@@ -71,7 +71,7 @@ export const ADMIN_NAV_CATALOGUE: readonly AdminNavDef[] = [
   { key: 'leads',           href: '/admin/leads',           label: 'Leads emails',      module: 'leads',           section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
   { key: 'creator-applications', href: '/admin/candidaturas', label: 'Candidaturas', module: 'leads', section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
   { key: 'targets',         href: '/admin/targets',         label: 'Leads CC',          module: 'targets',         section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
-  { key: 'prensa-targets',  href: '/admin/prensa-targets',  label: 'Prensa targets',    module: 'prensa_targets',  section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
+  { key: 'prensa-targets',  href: '/admin/prensa-targets',  label: 'Prensa y difusión', module: 'prensa_targets',  section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
   { key: 'partner-leads',   href: '/admin/partner-leads',   label: 'Partners CS2',      module: 'leads',           section: 'more', group: 'Crecimiento', submenu: 'leads', prefetch: false },
   { key: 'live',            href: '/admin/live',            label: 'En directo',        module: 'talentos',        section: 'more', group: 'Crecimiento', prefetch: false },
   { key: 'giveaways',       href: '/admin/giveaways',       label: 'Sorteos',           module: 'sorteos',         section: 'more', group: 'Crecimiento', prefetch: false },

@@ -1,8 +1,9 @@
-import { eq, lte, gte, and, desc } from 'drizzle-orm';
+import { eq, lte, gte, and, desc, type SQL } from 'drizzle-orm';
 import { db } from '@/lib/db';
 import { editorialSlots, posts } from '@/db/schema';
 import type { EditorialSlotKey } from '@/db/schema/editorialSlots';
 import { attachTalents, type PostWithTalents } from './posts';
+import { webEditorialCondition } from './content-channel';
 
 export type SlotWithPost = {
   slot: EditorialSlotKey;
@@ -40,6 +41,7 @@ export async function getEditorialSlots(): Promise<SlotWithPost[]> {
       posts,
       and(
         eq(editorialSlots.postId, posts.id),
+        webEditorialCondition,
         eq(posts.status, 'published'),
         lte(posts.publishedAt, now),
       ),
@@ -128,6 +130,7 @@ export async function getPublishedNewsPostsForAdmin() {
       and(
         eq(posts.status, 'published'),
         eq(posts.vertical, 'news'),
+        webEditorialCondition,
         lte(posts.publishedAt, now),
       ),
     )
@@ -152,9 +155,9 @@ export async function getAllNewsPostsForAdmin(contentType?: 'noticias' | 'analis
     })
     .from(posts)
     .where(
-      contentType
+      and(webEditorialCondition, contentType
         ? and(eq(posts.vertical, 'news'), eq(posts.contentType, contentType))
-        : eq(posts.vertical, 'news'),
+        : eq(posts.vertical, 'news')),
     )
     .orderBy(desc(posts.updatedAt));
 }
@@ -163,7 +166,7 @@ export async function getAllEditorialPostsForAdmin(
   vertical?: 'news' | 'blog',
   contentType?: 'noticias' | 'analisis' | 'estadisticas',
 ) {
-  const conditions = [];
+  const conditions: SQL[] = [webEditorialCondition];
   if (vertical) conditions.push(eq(posts.vertical, vertical));
   if (contentType) conditions.push(eq(posts.contentType, contentType));
 
@@ -210,6 +213,7 @@ export async function getEditorialCadence(weeks = 6): Promise<EditorialCadenceWe
     .from(posts)
     .where(and(
       eq(posts.status, 'published'),
+      webEditorialCondition,
       gte(posts.publishedAt, start),
       lte(posts.publishedAt, end),
     ))

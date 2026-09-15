@@ -1,12 +1,8 @@
 import Link from 'next/link';
 import { requirePermission } from '@/lib/permissions';
 import { getAllEditorialPostsForAdmin, getEditorialCadence } from '@/lib/queries/editorialSlots';
-import { getNewsletterStats } from '@/lib/queries/newsletterSubscribers';
-import { db } from '@/lib/db';
-import { newsletterSends } from '@/db/schema';
 import { deletePostVoidAction } from './actions';
 import { DeleteConfirmButton } from '../giveaways/DeleteConfirmButton';
-import { SendNewsletterButton } from './SendNewsletterButton';
 import { EditorialCadencePanel } from './EditorialCadencePanel';
 
 type ContentType = 'noticias' | 'analisis' | 'estadisticas';
@@ -37,19 +33,16 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
       ? rawType
       : undefined;
 
-  const [allPosts, cadence, nlStats, existingSends] = await Promise.all([
+  const [allPosts, cadence] = await Promise.all([
     getAllEditorialPostsForAdmin(activeVertical, activeType),
     getEditorialCadence(6),
-    getNewsletterStats(),
-    db.select({ postId: newsletterSends.postId, status: newsletterSends.status }).from(newsletterSends),
   ]);
-  const sentPostIds = new Set(existingSends.map((s) => s.postId));
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Contenido</h1>
-        <div className="flex items-center gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
+        <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Noticias y blog de la web</h1>
+        <div className="flex flex-wrap items-center gap-3">
           <Link
             href="/admin/noticias/agenda"
             className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
@@ -69,10 +62,10 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
             Slots editoriales
           </Link>
           <Link
-            href="/admin/noticias/suscriptores"
+            href="/admin/noticias/boletin"
             className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
           >
-            Suscriptores
+            Boletín de suscriptores
           </Link>
           <Link
             href="/admin/noticias/new?vertical=news"
@@ -87,6 +80,12 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
             + Blog
           </Link>
         </div>
+      </div>
+
+      <div className="mb-6 rounded-xl border border-sp-admin-border bg-sp-admin-card p-5 text-sm text-sp-admin-muted">
+        <p className="font-semibold text-sp-admin-text">Actualidad de CS2 y esports, creadores y noticias de SocialPro.</p>
+        <p className="mt-2">Seleccionamos noticias de interés para nuestra comunidad, con fuentes contrastadas: torneos, cambios del juego, novedades de los creadores con los que trabajamos y anuncios propios ya confirmados.</p>
+        <p className="mt-2">Las propuestas para periódicos, medios y páginas de anuncios se preparan en <Link href="/admin/prensa-targets" className="font-semibold text-sp-admin-accent hover:underline">Prensa y difusión</Link>.</p>
       </div>
 
       <EditorialCadencePanel weeks={cadence} />
@@ -139,7 +138,7 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
           </Link>
         </div>
       ) : (
-        <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-hidden">
+        <div className="rounded-2xl bg-sp-admin-card border border-sp-admin-border overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-sp-admin-border bg-sp-admin-bg/50">
@@ -149,7 +148,6 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
                 <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Publicación</th>
                 <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Autor</th>
                 <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Tags</th>
-                <th className="text-left px-4 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Newsletter</th>
                 <th className="text-left px-6 py-3 font-semibold text-sp-admin-muted text-[11px] uppercase tracking-wider">Acciones</th>
               </tr>
             </thead>
@@ -187,18 +185,6 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
                           </span>
                         ))}
                       </div>
-                    </td>
-                    <td className="px-4 py-4">
-                      {p.vertical === 'news' && p.status === 'published' ? (
-                        <SendNewsletterButton
-                          postId={p.id}
-                          postTitle={p.title}
-                          totalSubscribers={nlStats.total}
-                          alreadySent={sentPostIds.has(p.id)}
-                        />
-                      ) : (
-                        <span className="text-[11px] text-sp-admin-muted">—</span>
-                      )}
                     </td>
                     <td className="px-6 py-4">
                       <div className="flex items-center gap-3">

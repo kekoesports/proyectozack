@@ -13,6 +13,7 @@ import {
   talents,
 } from '@/db/schema';
 import { db } from '@/lib/db';
+import { webEditorialCondition } from '@/lib/queries/content-channel';
 
 import { defineReadTool } from '../tools/define';
 import type { ErasedAgentTool } from '../types';
@@ -192,7 +193,7 @@ export const getSeoOperationsSnapshotTool: ErasedAgentTool = defineReadTool({
           drafts: sql<string>`count(*) filter (where ${posts.status} = 'draft')`,
           withoutCover: sql<string>`count(*) filter (where ${posts.status} = 'published' and ${posts.coverUrl} is null)`,
         })
-        .from(posts),
+        .from(posts).where(webEditorialCondition),
       db
         .select({
           total: sql<string>`count(*) filter (where ${talents.archivedAt} is null)`,

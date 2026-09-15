@@ -178,6 +178,13 @@ The former `.impeccable.md` is absent. The published visual version is the refer
 
 ## Agent skills
 
+### Editorial web y difusión — decisión 2026-09-15
+
+- `/admin/noticias` gestiona actualidad CS2/esports de interés para la comunidad española y LATAM, novedades verificadas de creadores del roster vigente y anuncios propios de SocialPro ya confirmados. Consultar fuentes originales, fecha del hecho y publicaciones existentes antes de proponer; no inventar participación, cifras, fichajes ni co-streams.
+- Propuestas para periódicos, medios y páginas de anuncios pertenecen a `/admin/prensa-targets`. No contarlas como noticias ni ocupar con ellas el calendario web. El boletín de suscriptores es un tercer recorrido; no equivale a outreach a prensa.
+- Nuevas propuestas para medios usan el marcador reservado `press-outreach`; la compatibilidad reconoce `prensa-*` y la combinación `prensa` + `adaptacion-editorial`. `prensa` como tema de un anuncio propio no basta para clasificarlo como outreach. No quitar marcadores para convertir una propuesta en noticia; preparar una pieza web independiente y contrastada.
+- Guardar propuestas o investigar noticias no autoriza envíos ni publicación. Criterio y selección inicial: `docs/editorial/news-policy-2026-09-15.md`.
+
 ### Issue tracker
 
 Local markdown bajo `.scratch/<feature-slug>/`. See `docs/agents/issue-tracker.md`.
