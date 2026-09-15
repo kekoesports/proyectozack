@@ -23,31 +23,33 @@ export type BrandConfig = {
   ctaText:      string;
   faqs:         BrandFaq[];
   isActive:     boolean;
+  /** ISO timestamp of an actual editorial check of the listed codes and giveaways. */
+  lastVerifiedAt?: string;
 };
 
 export const BRANDS_CONFIG: BrandConfig[] = [
   {
     slug:        'keydrop',
-    name:        'Keydrop',
+    name:        'KeyDrop',
     dbName:      'KEYDROP',
     logoUrl:     resolveBrandLogo('keydrop'),
     officialUrl: 'https://key-drop.com',
     category:    'cs2',
-    tagline:     'Abre cajas de CS2 con bonus exclusivo',
-    description: `Keydrop es una de las plataformas de apertura de cajas de CS2 más populares de Europa, con millones de usuarios activos y un catálogo de miles de skins disponibles. Fundada en Polonia, opera con licencia y es conocida por su interfaz transparente que muestra en tiempo real todas las aperturas de otros jugadores.
+    tagline:     'Información sobre códigos y condiciones de KeyDrop',
+    description: `KeyDrop es una plataforma relacionada con skins de CS2 que incluye actividades con resultados aleatorios. Este contenido no garantiza resultados, beneficios ni la disponibilidad de una promoción.
 
-Usar un código de referido de uno de nuestros creadores en Keydrop te da acceso a un bonus de bienvenida superior al que obtendrías registrándote directamente: crédito extra, cajas gratuitas o porcentaje adicional en tu primer depósito según la promoción vigente. Los códigos de SocialPro son los mismos que los streamers muestran en directo — negociados directamente con la plataforma.
+Las condiciones de cada código pueden cambiar. Su presencia en esta página no acredita que el bonus sea superior al del registro directo. Revisa siempre las condiciones oficiales, las restricciones territoriales y los requisitos de edad.
 
-Keydrop ofrece varios formatos: apertura individual de cajas, modo batalla (dos jugadores abren la misma caja y el de mayor valor se lleva ambas skins) y el modo upgrade, donde puedes mejorar una skin existente por una de mayor valor. Todos los precios están en euros y la plataforma acepta las principales formas de pago disponibles en España y LATAM.
+No acreditamos aquí una licencia concreta, cifras de usuarios ni la disponibilidad de métodos de pago o de retirada en una región determinada. El saldo interno de la plataforma no debe confundirse con dinero retirable a una cuenta bancaria.
 
-Los creadores de SocialPro que trabajan con Keydrop son streamers verificados con audiencias reales en CS2. Cuando usas su código no les cobran nada adicional: simplemente obtienes el bonus y el creador recibe una pequeña comisión que financia sus sorteos y contenido.`,
-    ctaText:     'Usar código en Keydrop',
+SocialPro y KeyDrop son entidades diferentes. Algunos enlaces corresponden a relaciones promocionales con creadores; su inclusión no implica que SocialPro sea propietaria de la plataforma ni una garantía de seguridad.`,
+    ctaText:     'Consultar web oficial',
     faqs: [
-      { q: '¿Qué bonus da el código de Keydrop?', a: 'El bonus varía según la campaña vigente. Habitualmente incluye crédito extra en el primer depósito (entre un 5% y un 15%) o cajas gratuitas. El código se aplica durante el registro o en la sección de bonos de tu cuenta.' },
-      { q: '¿Es seguro Keydrop?', a: 'Keydrop opera con licencia de Curazao y lleva varios años en funcionamiento con millones de usuarios. Como con cualquier plataforma de skins, recomendamos jugar con responsabilidad y no depositar más de lo que estés dispuesto a perder.' },
-      { q: '¿Puedo usar el código si ya tengo cuenta en Keydrop?', a: 'Los códigos de referido generalmente se aplican solo a cuentas nuevas durante el registro. Si ya tienes cuenta, consulta la sección de bonos de tu perfil por si hay promociones disponibles para usuarios existentes.' },
-      { q: '¿Cómo retiro mis ganancias en Keydrop?', a: 'Puedes vender las skins dentro de la plataforma y retirar el saldo a través de los métodos disponibles: tarjeta, transferencia o criptomonedas según tu región.' },
-      { q: '¿Por qué el código de un creador da más bonus que el registro directo?', a: 'SocialPro negocia directamente con Keydrop mejores condiciones para la comunidad de sus streamers. Los acuerdos de agencia permiten obtener bonos más generosos que los disponibles en el registro estándar.' },
+      { q: '¿Qué bonus da el código de KeyDrop?', a: 'El bonus depende del código y de la promoción vigente. Consulta el porcentaje mostrado junto a cada código antes de registrarte, ya que KeyDrop puede modificar las condiciones.' },
+      { q: '¿Es seguro KeyDrop?', a: 'No podemos garantizar la seguridad de la plataforma ni acreditar aquí una licencia concreta. Las actividades con resultados aleatorios pueden causar pérdidas. Consulta las condiciones oficiales y las restricciones aplicables en tu país. Contenido exclusivo para mayores de 18 años.' },
+      { q: '¿Las condiciones son iguales para cuentas nuevas y existentes?', a: 'Los requisitos dependen de la promoción vigente. No presupongas que un código es válido para todas las cuentas; consulta sus condiciones oficiales.' },
+      { q: '¿Qué significa retirar skins en KeyDrop?', a: 'Las skins disponibles pueden enviarse al inventario de Steam mediante una oferta de intercambio, cumpliendo los requisitos de retirada de KeyDrop. Si vendes una skin dentro de la plataforma, recibes saldo interno de KeyDrop. Consulta siempre las condiciones vigentes antes de utilizar el servicio.' },
+      { q: '¿Un código de creador garantiza un bonus superior al registro directo?', a: 'No. No disponemos de una comparación verificada que permita afirmar una ventaja general frente al registro directo. Las condiciones dependen de cada promoción.' },
     ],
     isActive: true,
   },

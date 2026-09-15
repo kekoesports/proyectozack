@@ -1,3 +1,4 @@
+import { parseContactSource } from '@/lib/schemas/contact-source';
 import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { ContactSection } from '@/features/contact/components/ContactSection';
@@ -56,6 +57,7 @@ export default async function ContactoPage({
   readonly searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
+  const source = parseContactSource(params.source);
   const talentName = params.talent;
   const typeParam  = params.type;
 
@@ -74,7 +76,7 @@ export default async function ContactoPage({
         dangerouslySetInnerHTML={{ __html: safeJsonLd(jsonLd) }}
       />
       <h1 className="sr-only">Contacta con Nuestra Agencia Gaming</h1>
-      {defaultValues ? <ContactSection defaultValues={defaultValues} /> : <ContactSection />}
+      {defaultValues ? <ContactSection source={source} defaultValues={defaultValues} /> : <ContactSection source={source} />}
     </div>
   );
 }

@@ -1,3 +1,4 @@
+import { parseContactSource } from '@/lib/schemas/contact-source';
 import type { Metadata } from 'next';
 
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
@@ -61,6 +62,7 @@ export default async function ContactEnPage({
   readonly searchParams: Promise<Record<string, string | undefined>>;
 }) {
   const params = await searchParams;
+  const source = parseContactSource(params.source);
   const typeParam = params.type;
 
   const resolvedType: 'brand' | 'talent' | null =
@@ -84,7 +86,7 @@ export default async function ContactEnPage({
         </div>
       </section>
 
-      {defaultValues ? <ContactFormEn defaultValues={defaultValues} /> : <ContactFormEn />}
+      {defaultValues ? <ContactFormEn source={source} defaultValues={defaultValues} /> : <ContactFormEn source={source} />}
     </>
   );
 }

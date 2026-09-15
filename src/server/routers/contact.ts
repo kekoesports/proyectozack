@@ -75,6 +75,7 @@ export const contactRouter = router({
           type: input.type,
           company: input.company,
           message: input.message,
+          notes: input.source ? `Origen del formulario: /${input.source}` : undefined,
           budget: input.budget,
           timeline: input.timeline,
           audience: input.audience,

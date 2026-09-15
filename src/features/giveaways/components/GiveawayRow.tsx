@@ -1,5 +1,7 @@
 'use client';
 
+import { promotionalRel } from '@/lib/brand-verification';
+
 import { useState } from 'react';
 import Image from 'next/image';
 import { GiveawayPrizePlaceholder } from './GiveawayPrizePlaceholder';
@@ -83,7 +85,7 @@ export function GiveawayRow({ giveaway, finished = false }: Props): React.JSX.El
         <a
           href={isActive ? giveaway.redirectUrl : undefined}
           target={isActive ? '_blank' : undefined}
-          rel={isActive ? 'noopener noreferrer' : undefined}
+          rel={isActive ? promotionalRel(giveaway.brandName) : undefined}
           aria-label={isActive ? `Participar en ${giveaway.title}` : undefined}
           tabIndex={isActive ? -1 : undefined}
           className={`relative shrink-0 h-full border-r border-white/[0.05] bg-white/[0.02] transition-all duration-300 ${isActive ? 'cursor-pointer' : 'cursor-default'} ${expanded ? 'w-[72px]' : 'w-[56px]'}`}
@@ -139,7 +141,7 @@ export function GiveawayRow({ giveaway, finished = false }: Props): React.JSX.El
           <a
             href={giveaway.redirectUrl}
             target="_blank"
-            rel="noopener noreferrer"
+            rel={promotionalRel(giveaway.brandName)}
             onClick={(e) => e.stopPropagation()}
             className={`shrink-0 h-full flex items-center justify-center border-l transition-all duration-300 font-black text-[10px] uppercase tracking-wider ${
               expanded

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { ContactSource } from '@/lib/schemas/contact-source';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as m from 'motion/react-client';
@@ -38,7 +39,7 @@ import {
  * <ContactSection />
  * ```
  */
-export function ContactSection({ defaultValues }: { readonly defaultValues?: Partial<ContactForm> }): React.JSX.Element {
+export function ContactSection({ defaultValues, source }: { readonly defaultValues?: Partial<ContactForm>; readonly source?: ContactSource | undefined }): React.JSX.Element {
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
   const submitMutation = trpc.contact.submit.useMutation();
 
@@ -56,7 +57,7 @@ export function ContactSection({ defaultValues }: { readonly defaultValues?: Par
   const onSubmit = async (data: ContactForm) => {
     setStatus('sending');
     try {
-      await submitMutation.mutateAsync(data);
+      await submitMutation.mutateAsync({ ...data, ...(source ? { source } : {}) });
       trackEvent('form_submit', { form_id: 'contact', visitor_type: data.type });
       setStatus('ok');
       reset();

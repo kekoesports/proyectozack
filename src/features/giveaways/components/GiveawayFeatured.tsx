@@ -1,5 +1,7 @@
 'use client';
 
+import { promotionalRel } from '@/lib/brand-verification';
+
 import { useState } from 'react';
 import { trpc } from '@/lib/trpc/client';
 import Image from 'next/image';
@@ -95,7 +97,7 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
       <a
         href={giveaway.redirectUrl}
         target="_blank"
-        rel="noopener noreferrer"
+        rel={promotionalRel(giveaway.brandName)}
         aria-label={`Participar en ${giveaway.title}`}
         className="relative sm:w-[45%] h-56 sm:h-auto shrink-0 overflow-hidden block"
         tabIndex={-1}
@@ -214,7 +216,7 @@ export function GiveawayFeatured({ giveaway }: Props): React.JSX.Element {
           <a
             href={giveaway.redirectUrl}
             target="_blank"
-            rel="noopener noreferrer"
+            rel={promotionalRel(giveaway.brandName)}
             className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-sp-grad text-white text-[12px] font-black uppercase tracking-[0.15em] shadow-[0_2px_20px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_30px_rgba(245,99,42,0.4)] hover:tracking-[0.2em] transition-all duration-300"
             onClick={() => {
               void trackEvent.mutateAsync({ action: 'click', giveawayId: giveaway.id }).catch(() => undefined);

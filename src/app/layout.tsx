@@ -82,7 +82,7 @@ const jsonLd = {
       },
       description:
         'SocialPro es una agencia de marketing y gestión de creadores gaming e iGaming que conecta marcas con talento especializado en España y Latinoamérica, con resultados medibles y compliance DGOJ integrado.',
-      foundingDate: '2012',
+      foundingDate: '2025',
       foundingLocation: { '@type': 'Place', name: 'Córdoba, España' },
       areaServed: [
         { '@type': 'Country', name: 'España' },

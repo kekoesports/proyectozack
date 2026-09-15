@@ -1,4 +1,5 @@
 import type { MetadataRoute } from 'next';
+import { TWITCH_LANGUAGES } from '@/features/twitch/landing-content';
 
 import { getCaseSlugs } from '@/lib/queries/cases';
 import { getTalentSlugs } from '@/lib/queries/talents';
@@ -152,11 +153,16 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       lastModified: BUILD_DATE,
       alternates: { languages: { es: absoluteUrl('/agencia-marketing-esports'), en: absoluteUrl('/esports-marketing-agency'), 'x-default': absoluteUrl('/agencia-marketing-esports') } },
     },
-    // Twitch — solo EN, sin par ES todavía
+    // Twitch — reciprocal ES/EN pair, with the Spanish market as default.
+    {
+      url: absoluteUrl('/agencia-streamers-twitch'),
+      lastModified: D.home,
+      alternates: { languages: TWITCH_LANGUAGES },
+    },
     {
       url: absoluteUrl('/twitch-streamers-agency'),
       lastModified: BUILD_DATE,
-      alternates: { languages: { en: absoluteUrl('/twitch-streamers-agency'), 'x-default': absoluteUrl('/twitch-streamers-agency') } },
+      alternates: { languages: TWITCH_LANGUAGES },
     },
   ];
 

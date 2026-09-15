@@ -1,5 +1,7 @@
 'use client';
 
+import { promotionalRel } from '@/lib/brand-verification';
+
 import { useState, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
@@ -168,7 +170,7 @@ export function CodeRowMini({ code }: Props): React.JSX.Element {
 
       {/* Ir → */}
       {code.ctaUrl ? (
-        <a href={code.ctaUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
+        <a href={code.ctaUrl} target="_blank" rel={promotionalRel(code.brandName)} onClick={handleCta}
           aria-label={`Usar ${code.code}`}
           className="shrink-0 w-10 h-full flex items-center justify-center border-l border-white/[0.05] text-white/20 hover:text-white hover:bg-white/[0.04] transition-colors font-bold text-sm">
           →
@@ -184,7 +186,7 @@ export function CodeRowMini({ code }: Props): React.JSX.Element {
     {/* EXPANSIÓN en hover — CTA grande */}
     <div className={`overflow-hidden transition-all duration-250 ease-out ${hovered ? 'max-h-[52px] opacity-100' : 'max-h-0 opacity-0'}`}>
       {code.ctaUrl ? (
-        <a href={code.ctaUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
+        <a href={code.ctaUrl} target="_blank" rel={promotionalRel(code.brandName)} onClick={handleCta}
           className="flex items-center justify-center gap-2 mx-2 mb-2 py-2 rounded-lg bg-sp-grad text-white text-[11px] font-black uppercase tracking-[0.15em] shadow-[0_2px_12px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_20px_rgba(245,99,42,0.35)] transition-all">
           {code.ctaText?.trim() || 'Usar código'} →
         </a>

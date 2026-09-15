@@ -1,3 +1,5 @@
+import { connection } from 'next/server';
+import { KEYDROP_CONTENT_YEAR, verifiedDateLabel, isCurrentDatedGiveaway } from '@/lib/brand-verification';
 import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import { notFound } from 'next/navigation';
@@ -13,7 +15,7 @@ import { CodesExpandable } from '@/features/giveaways/components/CodesExpandable
 import { HeroSponsorCard } from '@/features/giveaways/components/HeroSponsorCard';
 import { absoluteUrl, SITE_URL } from '@/lib/site-url';
 import { generateCodeListSchema, generateGiveawayListSchema } from '@/lib/schema';
-import type { GiveawayWinnerFull, CreatorCodeWithTalent, GiveawayWithTalent } from '@/types';
+import type { GiveawayWinnerFull } from '@/types';
 
 export const revalidate = 3600;
 
@@ -28,11 +30,11 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
   const brand = getBrandBySlug(brandSlug);
   if (!brand) return {};
 
-  const title = `Códigos ${brand.name} 2026 — Bonos Exclusivos | SocialPro`;
-  const description = `Todos los códigos activos de ${brand.name} de creadores españoles. ${brand.tagline}. Sorteos en directo y ganadores reales.`;
+  const title = brandSlug === 'keydrop' ? `KeyDrop ${KEYDROP_CONTENT_YEAR}: códigos, condiciones y avisos | SocialPro` : `Códigos ${brand.name} 2026 — Bonos Exclusivos | SocialPro`;
+  const description = brandSlug === 'keydrop' ? 'Información sobre los códigos de KeyDrop, condiciones de las promociones, saldo interno y avisos de responsabilidad. Contenido exclusivo para mayores de 18 años.' : `Todos los códigos activos de ${brand.name} de creadores españoles. ${brand.tagline}. Sorteos en directo y ganadores reales.`;
 
   return {
-    title,
+    title: brandSlug === 'keydrop' ? { absolute: title } : title,
     description,
     alternates: { canonical: `/marcas/${brandSlug}` },
     openGraph: {
@@ -63,6 +65,10 @@ export default async function BrandPage({ params }: PageProps) {
   const brand = getBrandBySlug(brandSlug);
   if (!brand) notFound();
 
+  // KeyDrop must evaluate expiry at request time, not from an hour-old prerender.
+  if (brandSlug === 'keydrop') await connection();
+  const verifiedLabel = verifiedDateLabel(brand.lastVerifiedAt);
+
   // Datos live filtrados por marca
   const [allCodes, allGiveaways, allWinners] = await Promise.all([
     getAllCodes(),
@@ -70,8 +76,8 @@ export default async function BrandPage({ params }: PageProps) {
     getAllWinners(),
   ]);
 
-  const codes       = allCodes.filter((c) => c.brandName.toLowerCase() === brand.dbName.toLowerCase()) as CreatorCodeWithTalent[];
-  const giveaways   = allGiveaways.filter((g) => g.brandName.toLowerCase() === brand.dbName.toLowerCase()) as GiveawayWithTalent[];
+  const codes       = allCodes.filter((c) => c.brandName.toLowerCase() === brand.dbName.toLowerCase());
+  const giveaways   = allGiveaways.filter((g) => g.brandName.toLowerCase() === brand.dbName.toLowerCase() && (brandSlug !== 'keydrop' || isCurrentDatedGiveaway(g)));
   const winners     = (allWinners as unknown as GiveawayWinnerFull[]).filter((w) => w.giveaway.brandName.toLowerCase() === brand.dbName.toLowerCase()).slice(0, 8);
 
   const featuredCode  = codes.find((c) => c.isFeatured) ?? codes[0] ?? null;
@@ -104,8 +110,8 @@ export default async function BrandPage({ params }: PageProps) {
       publisher: { '@id': absoluteUrl('/#organization') },
     },
   };
-  const codeListSchema  = codes.length > 0 ? generateCodeListSchema(codes, SITE_URL, `Códigos ${brand.name} activos en SocialPro`) : null;
-  const eventListSchema = giveaways.length > 0 ? generateGiveawayListSchema(giveaways, SITE_URL, `Sorteos ${brand.name} activos en SocialPro`) : null;
+  const codeListSchema  = brandSlug !== 'keydrop' && codes.length > 0 ? generateCodeListSchema(codes, SITE_URL, `Códigos ${brand.name} activos en SocialPro`) : null;
+  const eventListSchema = brandSlug !== 'keydrop' && giveaways.length > 0 ? generateGiveawayListSchema(giveaways, SITE_URL, `Sorteos ${brand.name} activos en SocialPro`) : null;
   const breadcrumbSchema = {
     '@context': 'https://schema.org',
     '@type': 'BreadcrumbList',
@@ -130,19 +136,19 @@ export default async function BrandPage({ params }: PageProps) {
           <div className="absolute inset-0 pointer-events-none" style={{ background: 'radial-gradient(50% 40% at 50% 0%, rgba(245,99,42,0.1) 0%, transparent 60%)' }} />
           <div className="relative max-w-4xl mx-auto text-center">
             <p className="text-[11px] font-bold uppercase tracking-[0.3em] text-sp-orange mb-4">
-              Códigos exclusivos · SocialPro
+              {brandSlug === 'keydrop' ? 'Información y condiciones · SocialPro' : 'Códigos exclusivos · SocialPro'}
             </p>
             <h1 className="font-display text-5xl sm:text-6xl md:text-7xl font-black uppercase leading-tight mb-4">
-              Códigos <span style={g}>{brand.name}</span><br />2026
+              {brandSlug === 'keydrop' ? <>KeyDrop: información sobre códigos en {KEYDROP_CONTENT_YEAR}</> : <>Códigos <span style={g}>{brand.name}</span><br />2026</>}
             </h1>
             <p className="text-lg text-white/50 max-w-xl mx-auto mb-8">
-              {brand.tagline}. Códigos de creadores verificados con bonos exclusivos para la comunidad de SocialPro.
+              {brandSlug === 'keydrop' ? brand.tagline : `${brand.tagline}. Códigos de creadores verificados con bonos exclusivos para la comunidad de SocialPro.`}
             </p>
             {brand.officialUrl && (
               <a
                 href={brand.officialUrl}
                 target="_blank"
-                rel="noopener noreferrer sponsored"
+                rel="sponsored noopener noreferrer"
                 className="inline-block px-8 py-3 rounded-full font-black text-white text-sm uppercase tracking-wider bg-sp-grad shadow-[0_4px_20px_rgba(245,99,42,0.25)] hover:shadow-[0_4px_30px_rgba(245,99,42,0.4)] transition-shadow"
               >
                 {brand.ctaText} →
@@ -171,6 +177,8 @@ export default async function BrandPage({ params }: PageProps) {
               <h2 className="font-display text-2xl font-black uppercase mb-6">
                 Códigos activos de {brand.name}
               </h2>
+              {brandSlug === 'keydrop' && <p className="text-sm text-white/70 leading-relaxed mb-5">Algunos enlaces son promocionales. Si utilizas el código de un creador, este puede recibir una comisión sin coste adicional para ti. Las promociones y sus condiciones pueden cambiar. Contenido exclusivo para mayores de 18 años.</p>}
+              {verifiedLabel && <p className="text-sm text-white/60 mb-4">Última verificación de códigos y sorteos: {verifiedLabel}</p>}
               {featuredCode && <HeroSponsorCard code={featuredCode} />}
               {otherCodes.length > 0 && (
                 <div className="mt-4">

@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { contactSourceSchema } from './contact-source';
 
 const contactCreatorPlatforms = [
   'twitch',
@@ -10,6 +11,7 @@ const contactCreatorPlatforms = [
 ] as const;
 
 export const contactBodySchema = z.object({
+  source: contactSourceSchema.optional(),
   name: z.string().min(2, 'Escribe tu nombre').max(100),
   email: z.email('Escribe un email válido').max(200),
   phone: z.string().max(30).optional(),

@@ -10,6 +10,8 @@ type Pair = { alt: string; targetLang: 'EN' | 'ES' };
 // Para betting el ES único es /servicios/igaming (decisión PR #51 del dev),
 // /influencers-betting redirige 301 y queda fuera del map.
 const PAIRS: Record<string, Pair> = {
+  '/twitch-streamers-agency': { alt: '/agencia-streamers-twitch', targetLang: 'ES' },
+  '/agencia-streamers-twitch': { alt: '/twitch-streamers-agency', targetLang: 'EN' },
   // Marketing core (5 pares)
   '/':          { alt: '/en',        targetLang: 'EN' },
   '/en':        { alt: '/',          targetLang: 'ES' },

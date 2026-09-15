@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import type { ContactSource } from '@/lib/schemas/contact-source';
 import { CONTACT_PHONE_DISPLAY, WA_HREF } from '@/lib/utils/constants';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -61,7 +62,7 @@ const INFO_CARDS = [
  * @feature contact
  * @route /contact
  */
-export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Partial<ContactForm> }): React.JSX.Element {
+export function ContactFormEn({ defaultValues, source }: { readonly defaultValues?: Partial<ContactForm>; readonly source?: ContactSource | undefined }): React.JSX.Element {
   const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle');
   const submitMutation = trpc.contact.submit.useMutation();
 
@@ -79,7 +80,7 @@ export function ContactFormEn({ defaultValues }: { readonly defaultValues?: Part
   const onSubmit = async (data: ContactForm) => {
     setStatus('sending');
     try {
-      await submitMutation.mutateAsync(data);
+      await submitMutation.mutateAsync({ ...data, ...(source ? { source } : {}) });
       setStatus('ok');
       reset();
     } catch {

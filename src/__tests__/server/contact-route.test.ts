@@ -53,6 +53,13 @@ describe('trpc.contact.submit', () => {
     expect(sendContactAcknowledgementEmail).toHaveBeenCalledTimes(1);
   });
 
+  it.each(['twitch-streamers-agency', 'agencia-streamers-twitch'] as const)('persists the %s origin in CRM notes', async (source) => {
+    await caller.contact.submit({ name: 'TEST Brand', email: 'test@example.com', type: 'brand', message: 'Synthetic campaign enquiry', source });
+    expect(jest.mocked(db.insert).mock.results[0]?.value.values).toHaveBeenCalledWith(
+      expect.objectContaining({ type: 'brand', notes: `Origen del formulario: /${source}` }),
+    );
+  });
+
   it('accepts a qualified creator profile from the main contact form', async () => {
     const result = await caller.contact.submit({
       name: 'Creator Test',

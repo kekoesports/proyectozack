@@ -1,5 +1,7 @@
 'use client';
 
+import { promotionalRel } from '@/lib/brand-verification';
+
 import { useState, useCallback } from 'react';
 import Image from 'next/image';
 import { trpc } from '@/lib/trpc/client';
@@ -104,7 +106,7 @@ export function HeroSponsorCard({ code }: Props): React.JSX.Element {
           </div>
 
           {code.ctaUrl ? (
-            <a href={code.ctaUrl} target="_blank" rel="noopener noreferrer" onClick={handleCta}
+            <a href={code.ctaUrl} target="_blank" rel={promotionalRel(code.brandName)} onClick={handleCta}
               className="flex items-center justify-center gap-2 w-full py-3.5 rounded-xl bg-sp-grad text-white text-[13px] font-black uppercase tracking-[0.15em] shadow-[0_2px_20px_rgba(245,99,42,0.2)] hover:shadow-[0_4px_30px_rgba(245,99,42,0.35)] hover:tracking-[0.2em] transition-all duration-300">
               {ctaLabel} →
             </a>
