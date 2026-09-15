@@ -1,0 +1,148 @@
+{
+  "id": "gmailSentCrmSync",
+  "name": "SocialPro — Gmail enviados → CRM",
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Europe/Madrid",
+    "saveDataErrorExecution": "none",
+    "saveDataSuccessExecution": "none",
+    "saveManualExecutions": false,
+    "executionTimeout": 60
+  },
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 2
+            }
+          ]
+        }
+      },
+      "id": "gmail-sent-schedule",
+      "name": "Cada 2 minutos",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        -560,
+        0
+      ],
+      "notes": "Solo observa mensajes enviados después de activar este circuito; no modifica Gmail."
+    },
+    {
+      "parameters": {
+        "authentication": "oAuth2",
+        "resource": "message",
+        "operation": "getAll",
+        "returnAll": false,
+        "limit": 100,
+        "simple": false,
+        "filters": {
+          "q": "in:sent from:pcamacho@socialpro.es after:1789485927"
+        },
+        "options": {
+          "downloadAttachments": false
+        }
+      },
+      "id": "gmail-sent-read",
+      "name": "Leer enviados nuevos",
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        -320,
+        0
+      ],
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "VSljAkZlDa6mvrRN",
+          "name": "SocialPro Gmail - pcamacho"
+        }
+      },
+      "notes": "Lectura acotada a Enviados de pcamacho@socialpro.es. No etiqueta, borra ni envía correos."
+    },
+    {
+      "parameters": {
+        "jsCode": "const addresses = (value) => {\n  if (value && Array.isArray(value.value)) {\n    return [...new Set(value.value.map((item) => String(item.address ?? '').trim().toLowerCase()).filter(Boolean))];\n  }\n  const raw = typeof value === 'string' ? value : '';\n  return [...new Set((raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi) ?? []).map((email) => email.toLowerCase()))];\n};\nconst output = [];\nfor (const item of $input.all()) {\n  const value = item.json;\n  const from = addresses(value.from)[0] ?? '';\n  const to = addresses(value.to);\n  if (!value.id || !value.threadId || !from || to.length === 0) continue;\n  const sentAt = typeof value.date === 'string' && value.date\n    ? new Date(value.date)\n    : new Date(Number(value.internalDate));\n  if (Number.isNaN(sentAt.getTime())) continue;\n  output.push({ json: {\n    gmailId: String(value.id),\n    threadId: String(value.threadId),\n    sentAt: sentAt.toISOString(),\n    from,\n    to,\n    cc: addresses(value.cc),\n    bcc: addresses(value.bcc),\n    subject: String(value.subject ?? 'Sin asunto').trim().slice(0, 200),\n    ...(value.messageId ? { messageId: String(value.messageId).slice(0, 500) } : {}),\n    text: String(value.text ?? value.snippet ?? '[Mensaje enviado desde Gmail]').slice(0, 20000),\n  } });\n}\nreturn output;"
+      },
+      "id": "gmail-sent-normalize",
+      "name": "Validar metadatos del envío",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        -80,
+        0
+      ],
+      "notes": "Extrae solo los campos necesarios. El CRM vuelve a validar todo con Zod."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://socialpro.es/api/automation/creator-outreach/gmail-sent",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify($json) }}",
+        "options": {}
+      },
+      "id": "gmail-sent-crm",
+      "name": "Registrar contacto en CRM",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        160,
+        0
+      ],
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 5000,
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "K8HEAkSfOaiMLkRD",
+          "name": "SocialPro CRM - Production"
+        }
+      },
+      "notes": "Idempotente por ID Gmail. Solo actualiza contactos ya conocidos; no envía ningún correo."
+    }
+  ],
+  "connections": {
+    "Cada 2 minutos": {
+      "main": [
+        [
+          {
+            "node": "Leer enviados nuevos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer enviados nuevos": {
+      "main": [
+        [
+          {
+            "node": "Validar metadatos del envío",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validar metadatos del envío": {
+      "main": [
+        [
+          {
+            "node": "Registrar contacto en CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "pinData": {},
+  "tags": []
+}

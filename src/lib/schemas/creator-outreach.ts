@@ -78,6 +78,21 @@ export const resendReceivedContentSchema = z.object({
   message_id: z.string().max(500).nullable().optional(),
 }).passthrough();
 
+const gmailAddressSchema = z.email().max(254).transform((value) => value.trim().toLowerCase());
+
+export const gmailSentMessageSchema = z.object({
+  gmailId: z.string().trim().regex(/^[a-zA-Z0-9_-]+$/).max(100),
+  threadId: z.string().trim().regex(/^[a-zA-Z0-9_-]+$/).max(100),
+  sentAt: z.iso.datetime({ offset: true }),
+  from: gmailAddressSchema,
+  to: z.array(gmailAddressSchema).min(1).max(50),
+  cc: z.array(gmailAddressSchema).max(50).default([]),
+  bcc: z.array(gmailAddressSchema).max(50).default([]),
+  subject: z.string().trim().max(200).default('Sin asunto'),
+  messageId: z.string().trim().max(500).optional(),
+  text: z.string().max(20_000).default('[Mensaje enviado desde Gmail]'),
+}).strict();
+
 export type CreatorOutreachSourceType = z.infer<typeof creatorOutreachSourceTypeSchema>;
 export type CreatorOutreachStatus = z.infer<typeof creatorOutreachStatusSchema>;
 export type CreatorReviewSourceType = z.infer<typeof creatorReviewSourceTypeSchema>;
@@ -85,3 +100,4 @@ export type CreatorReviewDecision = z.infer<typeof creatorReviewDecisionSchema>;
 export type SendCreatorOutreachInput = z.infer<typeof sendCreatorOutreachSchema>;
 export type ResendReceivedWebhookEvent = z.infer<typeof resendReceivedWebhookEventSchema>;
 export type ResendReceivedContent = z.infer<typeof resendReceivedContentSchema>;
+export type GmailSentMessage = z.infer<typeof gmailSentMessageSchema>;
