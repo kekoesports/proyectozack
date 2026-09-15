@@ -38,14 +38,12 @@
         "resource": "message",
         "operation": "getAll",
         "returnAll": false,
-        "limit": 100,
-        "simple": false,
+        "limit": 20,
+        "simple": true,
         "filters": {
           "q": "in:sent from:pcamacho@socialpro.es after:1789485927"
         },
-        "options": {
-          "downloadAttachments": false
-        }
+        "options": {}
       },
       "id": "gmail-sent-read",
       "name": "Leer enviados nuevos",
@@ -65,7 +63,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const addresses = (value) => {\n  if (value && Array.isArray(value.value)) {\n    return [...new Set(value.value.map((item) => String(item.address ?? '').trim().toLowerCase()).filter(Boolean))];\n  }\n  const raw = typeof value === 'string' ? value : '';\n  return [...new Set((raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi) ?? []).map((email) => email.toLowerCase()))];\n};\nconst output = [];\nfor (const item of $input.all()) {\n  const value = item.json;\n  const from = addresses(value.from)[0] ?? '';\n  const to = addresses(value.to);\n  if (!value.id || !value.threadId || !from || to.length === 0) continue;\n  const sentAt = typeof value.date === 'string' && value.date\n    ? new Date(value.date)\n    : new Date(Number(value.internalDate));\n  if (Number.isNaN(sentAt.getTime())) continue;\n  output.push({ json: {\n    gmailId: String(value.id),\n    threadId: String(value.threadId),\n    sentAt: sentAt.toISOString(),\n    from,\n    to,\n    cc: addresses(value.cc),\n    bcc: addresses(value.bcc),\n    subject: String(value.subject ?? 'Sin asunto').trim().slice(0, 200),\n    ...(value.messageId ? { messageId: String(value.messageId).slice(0, 500) } : {}),\n    text: String(value.text ?? value.snippet ?? '[Mensaje enviado desde Gmail]').slice(0, 20000),\n  } });\n}\nreturn output;"
+        "jsCode": "const addresses = (value) => {\n  if (value && Array.isArray(value.value)) {\n    return [...new Set(value.value.map((item) => String(item.address ?? '').trim().toLowerCase()).filter(Boolean))];\n  }\n  const raw = typeof value === 'string' ? value : '';\n  return [...new Set((raw.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\\.[A-Z]{2,}/gi) ?? []).map((email) => email.toLowerCase()))];\n};\nconst output = [];\nfor (const item of $input.all()) {\n  const value = item.json;\n  const from = addresses(value.from ?? value.From)[0] ?? '';\n  const to = addresses(value.to ?? value.To);\n  if (!value.id || !value.threadId || !from || to.length === 0) continue;\n  const sentAt = typeof value.date === 'string' && value.date\n    ? new Date(value.date)\n    : new Date(Number(value.internalDate));\n  if (Number.isNaN(sentAt.getTime())) continue;\n  output.push({ json: {\n    gmailId: String(value.id),\n    threadId: String(value.threadId),\n    sentAt: sentAt.toISOString(),\n    from,\n    to,\n    cc: addresses(value.cc ?? value.Cc),\n    bcc: addresses(value.bcc ?? value.Bcc),\n    subject: String(value.subject ?? value.Subject ?? 'Sin asunto').trim().slice(0, 200),\n    ...(value.messageId ? { messageId: String(value.messageId).slice(0, 500) } : {}),\n    text: String(value.text ?? value.snippet ?? '[Mensaje enviado desde Gmail]').slice(0, 20000),\n  } });\n}\nreturn output;"
       },
       "id": "gmail-sent-normalize",
       "name": "Validar metadatos del envío",
