@@ -107,6 +107,14 @@ export function LeadDetail({ lead, staff, canWrite, outreach }: Props): React.Re
         <div className="flex flex-wrap items-center gap-2">
           <button
             type="button"
+            disabled={pending || lead.status === 'interesante'}
+            onClick={() => setStatus('interesante')}
+            className="px-3 py-1.5 text-sm rounded border border-fuchsia-500/40 text-fuchsia-400 disabled:opacity-40 hover:bg-fuchsia-500/10"
+          >
+            Marcar interesante
+          </button>
+          <button
+            type="button"
             disabled={pending || lead.status === 'contactado'}
             onClick={() => setStatus('contactado')}
             className="px-3 py-1.5 text-sm rounded border border-amber-500/40 text-amber-400 disabled:opacity-40 hover:bg-amber-500/10"

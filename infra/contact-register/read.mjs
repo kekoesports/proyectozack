@@ -27,7 +27,7 @@ export async function readContacts() {
     handle: item.channelUrl ?? item.company, otherLinks: item.otherLinks,
     followers: item.followers, average: item.averageAudience ?? item.viewers,
     message: item.message, phone: item.phone, origin: item.type === 'talent' ? 'Formulario de contacto · creador' : 'Formulario de contacto · por clasificar',
-    crm: 'https://socialpro.es/admin/leads',
+    status: item.status, crm: `https://socialpro.es/admin/leads/${item.id}`,
   }));
   // Preserve historical source IDs and exclude the pilot after identity repair.
   if (!env.CREATOR_INTAKE_WHATSAPP_CHATS) throw Error('contacts-pilot-exclusion-required');

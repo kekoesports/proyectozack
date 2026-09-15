@@ -189,6 +189,21 @@ describe('updateLeadStatus', () => {
 
     expect(upd.set.mock.calls[0]?.[0]).not.toHaveProperty('respondedAt');
   });
+
+  it('calificar como interesante no cuenta como primera respuesta', async () => {
+    let call = 0;
+    mockSelect.mockImplementation(() => {
+      call += 1;
+      if (call === 1) return makeBuilder([{ status: 'nuevo', notes: null }]);
+      return makeBuilder([{ name: 'Bea' }]);
+    });
+    const upd = makeBuilder([{ ...BASE_LEAD, status: 'interesante' }]);
+    mockUpdate.mockReturnValue(upd);
+
+    await updateLeadStatus(1, 'interesante', 'u2');
+
+    expect(upd.set.mock.calls[0]?.[0]).not.toHaveProperty('respondedAt');
+  });
 });
 
 describe('assignLead', () => {
@@ -309,6 +324,26 @@ describe('recordLeadEmailSent', () => {
       userId: 'u1',
     })).resolves.toBeUndefined();
     expect(mockUpdate).not.toHaveBeenCalled();
+  });
+
+  it('pasa de interesante a contactado cuando se envía el email', async () => {
+    let call = 0;
+    mockSelect.mockImplementation(() => {
+      call += 1;
+      if (call === 1) return makeBuilder([{ status: 'interesante', notes: null }]);
+      return makeBuilder([{ name: 'Pablo' }]);
+    });
+    const upd = makeBuilder([{ ...BASE_LEAD, status: 'contactado' }]);
+    mockUpdate.mockReturnValue(upd);
+
+    await recordLeadEmailSent({
+      id: 1,
+      subject: 'Re: Contacto',
+      providerEmailId: 'email_456',
+      userId: 'u1',
+    });
+
+    expect(upd.set.mock.calls[0]?.[0]?.status).toBe('contactado');
   });
 });
 

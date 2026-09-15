@@ -8,6 +8,7 @@ import { user } from './auth';
  */
 export const leadStatusEnum = pgEnum('lead_status', [
   'nuevo',
+  'interesante',
   'contactado',
   'descartado',
   'ganado',

@@ -74,6 +74,7 @@ export function toContact(input) {
     socials, followers: text(input.followers), average: text(input.average ?? p.averageViewers?.value),
     origin: input.origin, phone: text(input.phone), metrics: details.metrics,
     geo: details.geo, attachments: details.attachments, context, crm: input.crm,
+    status: text(input.status).toLowerCase(),
   };
 }
 export function combineContacts(inputs) {
@@ -85,6 +86,8 @@ export function combineContacts(inputs) {
     prior.ids = [...new Set([...prior.ids, ...item.ids])];
     prior.socials = [...new Map([...prior.socials, ...item.socials].map((s) => [s.url.toLowerCase(), s])).values()];
     for (const key of ['name', 'content', 'platform', 'followers', 'average', 'origin', 'metrics', 'geo', 'attachments', 'context', 'crm']) prior[key] = join([prior[key], item[key]]);
+    const statusPriority = { '': 0, nuevo: 1, descartado: 2, contactado: 3, ganado: 4, interesante: 5 };
+    if ((statusPriority[item.status] ?? 0) > (statusPriority[prior.status] ?? 0)) prior.status = item.status;
     for (const key of ['email', 'phone', 'country']) if (!prior[key]) prior[key] = item[key];
     if (item.updatedAt > prior.updatedAt) prior.updatedAt = item.updatedAt;
     if (item.createdAt < prior.createdAt) prior.createdAt = item.createdAt;
@@ -94,10 +97,11 @@ export function combineContacts(inputs) {
 export function contactCells(item) {
   const platform = (name) => join(item.socials.filter((s) => s.platform === name).map((s) => s.url));
   const hash = createHash('sha256').update(JSON.stringify(item)).digest('hex');
+  const status = { interesante: 'Interesante', contactado: 'Contactado', descartado: 'Descartado', ganado: 'Contactado' }[item.status] ?? 'Nuevo';
   return [item.ids[0], item.createdAt, item.name, item.email, item.country, item.content,
     item.platform, platform('YouTube'), platform('Twitch'), platform('Kick'),
     join(item.socials.filter((s) => !['YouTube','Twitch','Kick'].includes(s.platform)).map((s) => s.url)),
-    item.followers, '', item.average, '', 'Nuevo', '', '', item.origin, item.phone,
+    item.followers, '', item.average, '', status, '', '', item.origin, item.phone,
     platform('Instagram'), platform('TikTok'), item.metrics, item.geo, item.attachments,
     item.context.slice(0, 45000), item.updatedAt, item.crm, item.ids.join('\n'), hash];
 }

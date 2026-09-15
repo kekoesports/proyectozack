@@ -133,8 +133,8 @@ async function resolveActorName(userId: string): Promise<string> {
 /**
  * Cambia el status del lead y lo registra en el log interno.
  *
- * `respondedAt` se sella la primera vez que el lead sale de 'nuevo' y no se
- * vuelve a tocar — mide tiempo de primera respuesta, no de última.
+ * `respondedAt` se sella al contactar o ganar el lead. Calificarlo como
+ * interesante no implica que el equipo ya le haya respondido.
  *
  * @cache none
  * @visibility admin — gatear con requirePermission('leads', 'write')
@@ -162,7 +162,7 @@ export async function updateLeadStatus(
     .set({
       status,
       notes: appendNote(current.notes, entry),
-      ...(status !== 'nuevo'
+      ...(['contactado', 'ganado'].includes(status)
         ? { respondedAt: sql`coalesce(${contactSubmissions.respondedAt}, ${now})` }
         : {}),
     })
@@ -257,7 +257,7 @@ export async function recordLeadEmailSent(input: {
   const [updated] = await db
     .update(contactSubmissions)
     .set({
-      status: current.status === 'nuevo' ? 'contactado' : current.status,
+      status: ['nuevo', 'interesante'].includes(current.status) ? 'contactado' : current.status,
       notes: appendNote(current.notes, entry),
       respondedAt: sql`coalesce(${contactSubmissions.respondedAt}, ${now})`,
     })

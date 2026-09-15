@@ -25,9 +25,9 @@ type Props = {
 };
 
 const INBOX_LABELS: Record<StatusFilter, string> = {
-  nuevo: 'Entrada', contactado: 'Contactados', ganado: 'Ganados', descartado: 'Descartados', all: 'Todos',
+  nuevo: 'Entrada', interesante: 'Interesantes', contactado: 'Contactados', ganado: 'Ganados', descartado: 'Descartados', all: 'Todos',
 };
-const INBOXES: readonly StatusFilter[] = ['nuevo', 'contactado', 'ganado', 'descartado', 'all'];
+const INBOXES: readonly StatusFilter[] = ['nuevo', 'interesante', 'contactado', 'ganado', 'descartado', 'all'];
 
 function isOwnerFilter(v: string): v is OwnerFilter {
   return v === 'all' || v === 'unassigned' || v === 'mine';
@@ -43,7 +43,7 @@ export function LeadsTable({ leads, staff, currentUserId, canWrite }: Props): Re
 
   const inboxCounts = useMemo(() => {
     const counts: Record<StatusFilter, number> = {
-      nuevo: 0, contactado: 0, ganado: 0, descartado: 0, all: leads.length,
+      nuevo: 0, interesante: 0, contactado: 0, ganado: 0, descartado: 0, all: leads.length,
     };
     for (const lead of leads) counts[lead.status] += 1;
     return counts;

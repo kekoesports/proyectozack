@@ -39,3 +39,16 @@ test('fresh contact has a confirmed readback and a duplicate run has no effect',
   assert.equal(f.rows[1][15], 'Interesante'); assert.equal(f.rows[1][17], 'Nota personal');
   assert.equal(f.rows[1][19], '+34999000002');
 });
+
+test('CRM qualification updates the sheet status and keeps source IDs unique', async () => {
+  const item = contact('TEST-interest', 'interest@example.test');
+  item.status = 'interesante';
+  const row = contactCells({ ...item, status: 'nuevo' });
+  row[28] = 'TEST-interest\nTEST-interest';
+  row[29] = '';
+  const f = fixture([row]);
+
+  assert.equal((await syncContacts(f.api, [item])).updated, 1);
+  assert.equal(f.rows[1][15], 'Interesante');
+  assert.equal(f.rows[1][28], 'TEST-interest');
+});

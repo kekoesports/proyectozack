@@ -2,6 +2,7 @@ import type { LeadStatus } from '@/types';
 
 export const STATUS_META: Record<LeadStatus, { readonly label: string; readonly color: string }> = {
   nuevo:      { label: 'Nuevo',      color: 'border-sky-500/40 text-sky-400'        },
+  interesante: { label: 'Interesante', color: 'border-fuchsia-500/40 text-fuchsia-400' },
   contactado: { label: 'Contactado', color: 'border-amber-500/40 text-amber-400'    },
   ganado:     { label: 'Ganado',     color: 'border-emerald-500/40 text-emerald-400' },
   descartado: { label: 'Descartado', color: 'border-zinc-500/40 text-zinc-400'      },

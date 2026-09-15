@@ -62,13 +62,20 @@ export async function syncContacts(api, contacts, beforeWrite = async () => {}, 
     for (let col = 0; col < 30; col++) {
       // Human status, review notes and previously verified observations are owned
       // by the team, never overwritten by passive registration.
-      if (match >= 0 && [0, 1, 12, 14, 15, 16, 17].includes(col)) continue;
+      if (match >= 0 && [0, 1, 12, 14, 16, 17].includes(col)) continue;
+      // CRM-owned leads propagate their qualification; non-CRM rows keep the
+      // team's manual Sheet status.
+      if (match >= 0 && col === 15 && !contact.status) continue;
       let next = values[col];
-      if (match >= 0 && col < 18 && text(prior[col])) {
+      if (match >= 0 && col < 18 && col !== 15 && text(prior[col])) {
         if ([2, 5, 6, 7, 8, 9, 10, 11, 13].includes(col)) next = join([...text(prior[col]).split('\n'), ...text(next).split('\n')]);
         else continue;
       }
-      if (col === 28 && match >= 0) next = join([prior[0], prior[col], next]);
+      if (col === 28 && match >= 0) next = join([
+        prior[0],
+        ...text(prior[col]).split('\n'),
+        ...text(next).split('\n'),
+      ]);
       if (text(prior[col]) === text(next)) continue;
       const value = { userEnteredValue: { stringValue: text(next) } };
       // Clear old row-specific links when changing their displayed value.

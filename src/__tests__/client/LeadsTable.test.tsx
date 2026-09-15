@@ -22,7 +22,7 @@ function lead(id: number, status: LeadStatus): LeadWithAssignee {
   };
 }
 
-const leads = [lead(1, 'nuevo'), lead(2, 'contactado'), lead(3, 'ganado'), lead(4, 'descartado')];
+const leads = [lead(1, 'nuevo'), lead(2, 'interesante'), lead(3, 'contactado'), lead(4, 'ganado'), lead(5, 'descartado')];
 const props = { leads, staff: [], currentUserId: 'fixture-user', canWrite: true };
 
 beforeEach(() => jest.clearAllMocks());
@@ -34,14 +34,14 @@ it('opens only new leads and keeps contacted and closed leads accessible in thei
   expect(screen.getByRole('link', { name: 'Prueba 1' })).toBeInTheDocument();
   expect(screen.queryByRole('link', { name: 'Prueba 2' })).not.toBeInTheDocument();
   // safe: fixed pairs preserve the label/name tuple types.
-  const inboxCases = [['Contactados 1', 'Prueba 2'], ['Ganados 1', 'Prueba 3'], ['Descartados 1', 'Prueba 4']] as const;
+  const inboxCases = [['Interesantes 1', 'Prueba 2'], ['Contactados 1', 'Prueba 3'], ['Ganados 1', 'Prueba 4'], ['Descartados 1', 'Prueba 5']] as const;
   for (const [label, name] of inboxCases) {
     await user.click(screen.getByRole('button', { name: label }));
     expect(screen.getByRole('link', { name })).toBeInTheDocument();
     expect(screen.queryByRole('link', { name: 'Prueba 1' })).not.toBeInTheDocument();
   }
-  await user.click(screen.getByRole('button', { name: 'Todos 4' }));
-  expect(screen.getAllByRole('link', { name: /^Prueba / })).toHaveLength(4);
+  await user.click(screen.getByRole('button', { name: 'Todos 5' }));
+  expect(screen.getAllByRole('link', { name: /^Prueba / })).toHaveLength(5);
 });
 
 it('moves a saved contact on server refresh and can return it to the inbox', async () => {
@@ -83,7 +83,7 @@ it('clears search within the current inbox and preserves read-only access', asyn
   expect(screen.getByText('Ningún lead coincide con estos filtros.')).toBeInTheDocument();
   await user.click(screen.getByRole('button', { name: 'Limpiar' }));
   expect(screen.getByRole('button', { name: 'Contactados 1' })).toHaveAttribute('aria-pressed', 'true');
-  expect(screen.getByRole('link', { name: 'Prueba 2' })).toBeInTheDocument();
+  expect(screen.getByRole('link', { name: 'Prueba 3' })).toBeInTheDocument();
   expect(screen.queryByRole('combobox', { name: /^Estado de/ })).not.toBeInTheDocument();
   expect(updateLeadStatusAction).not.toHaveBeenCalled();
 });
