@@ -2,12 +2,14 @@ import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import { updateLeadStatusAction } from '@/app/admin/(dashboard)/leads/actions';
+import { LeadDetail } from '@/features/admin/leads/components/LeadDetail';
 import { LeadsTable } from '@/features/admin/leads/components/LeadsTable';
 import type { LeadStatus, LeadWithAssignee } from '@/types';
 
 jest.mock('@/app/admin/(dashboard)/leads/actions', () => ({
   updateLeadStatusAction: jest.fn(),
   assignLeadAction: jest.fn(),
+  addLeadNoteAction: jest.fn(),
 }));
 
 function lead(id: number, status: LeadStatus): LeadWithAssignee {
@@ -26,6 +28,29 @@ const leads = [lead(1, 'nuevo'), lead(2, 'interesante'), lead(3, 'contactado'), 
 const props = { leads, staff: [], currentUserId: 'fixture-user', canWrite: true };
 
 beforeEach(() => jest.clearAllMocks());
+
+it('shows creator channels and social URLs as safe clickable links', () => {
+  render(<LeadDetail
+    lead={{
+      ...lead(8, 'interesante'),
+      type: 'talent',
+      channelUrl: 'https://youtube.com/@fixture',
+      otherLinks: 'Instagram: https://instagram.com/fixture\nTwitch: https://twitch.tv/fixture',
+    }}
+    staff={[]}
+    canWrite={false}
+    outreach={null}
+  />);
+
+  for (const url of [
+    'https://youtube.com/@fixture',
+    'https://instagram.com/fixture',
+    'https://twitch.tv/fixture',
+  ]) {
+    expect(screen.getByRole('link', { name: url })).toHaveAttribute('href', url);
+    expect(screen.getByRole('link', { name: url })).toHaveAttribute('rel', 'noreferrer');
+  }
+});
 
 it('opens only new leads and keeps contacted and closed leads accessible in their inboxes', async () => {
   const user = userEvent.setup();

@@ -43,10 +43,23 @@ function parseLog(notes: string | null): readonly LogLine[] {
 
 function Field({ label, value }: { label: string; value: string | null }): React.ReactElement | null {
   if (!value) return null;
+  const parts = value.split(/(https?:\/\/[^\s,;]+)/g);
   return (
     <div>
       <dt className="text-xs uppercase text-sp-admin-muted">{label}</dt>
-      <dd className="text-sm text-sp-admin-text break-words">{value}</dd>
+      <dd className="text-sm text-sp-admin-text break-words whitespace-pre-wrap">
+        {parts.map((part, index) => /^https?:\/\/[^\s]+$/.test(part) ? (
+          <a
+            key={`${part}-${index}`}
+            href={part}
+            target="_blank"
+            rel="noreferrer"
+            className="text-sky-400 underline decoration-sky-400/40 underline-offset-2 hover:text-sky-300"
+          >
+            {part}
+          </a>
+        ) : part)}
+      </dd>
     </div>
   );
 }
