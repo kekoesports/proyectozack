@@ -123,6 +123,19 @@ jobs:
           npm run test:studio:isolation
           npm run test:studio:production
           npm run test:studio:agency
+      - name: News social delivery and replay (isolated PostgreSQL, mocked providers)
+        env:
+          DATABASE_URL: postgresql://fixture:fixture@127.0.0.1:15459/fixture
+          DB_POOL_MAX: '1'
+          NEWS_SOCIAL_ENABLED: 'true'
+          NEWS_SOCIAL_X_API_KEY: fixture-key
+          NEWS_SOCIAL_X_API_SECRET: fixture-secret
+          NEWS_SOCIAL_X_ACCESS_TOKEN: fixture-token
+          NEWS_SOCIAL_X_ACCESS_SECRET: fixture-secret
+          INSTAGRAM_BUSINESS_ACCOUNT_ID: '456'
+          META_INSTAGRAM_ACCESS_TOKEN: fixture-token
+          META_GRAPH_API_VERSION: v26.0
+        run: npx tsx scripts/test-news-social.ts
 
   build:
     name: Build

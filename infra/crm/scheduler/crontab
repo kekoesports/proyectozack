@@ -37,6 +37,8 @@
 7 * * * *    /usr/bin/curl -fsS -m 110 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/giveaway-lifecycle          # cada hora, minuto 7
 
 # ── frecuentes ──────────────────────────────────────────────────────────────
+# No external calls while either the global switch or each verified channel is paused.
+*/5 * * * *  /usr/bin/curl -fsS -m 90 -H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/news-social
 # Activado tras validar las credenciales oficiales de Twitch en producción.
 # Una ejecución agrupa hasta 100 logins en una sola consulta Helix y, si Twitch
 # falla, no escribe falsos estados offline en la base de datos.

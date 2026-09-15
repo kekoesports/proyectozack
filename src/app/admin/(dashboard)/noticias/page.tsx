@@ -43,6 +43,7 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <h1 className="font-display text-4xl font-black uppercase text-sp-admin-text">Noticias y blog de la web</h1>
         <div className="flex flex-wrap items-center gap-3">
+          <Link href="/admin/noticias/redes" className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover">Difusión en redes</Link>
           <Link
             href="/admin/noticias/agenda"
             className="px-4 py-2 rounded-lg border border-sp-admin-border text-sp-admin-muted text-sm font-semibold hover:bg-sp-admin-hover transition-colors"
@@ -202,6 +203,9 @@ export default async function AdminNoticiasPage({ searchParams }: Props) {
                         >
                           Ver →
                         </a>
+                        {p.vertical === 'news' && p.status === 'published' && p.publishedAt && p.publishedAt <= new Date() && (
+                          <a href={`/api/news/${p.id}/story`} target="_blank" rel="noopener noreferrer" className="text-xs text-sp-admin-accent hover:underline">Historia ↗</a>
+                        )}
                         <DeleteConfirmButton
                           action={deletePostVoidAction}
                           fields={{ id: p.id }}

@@ -98,3 +98,4 @@ export * from './creatorIntake';
 export * from './intakeReliability';
 
 export * from './quickNotes';
+export * from './newsSocial';

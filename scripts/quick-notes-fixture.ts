@@ -12,7 +12,7 @@ import {
 } from 'drizzle-kit/api';
 import { hashPassword } from 'better-auth/crypto';
 import baseline from '../drizzle/meta/0160_snapshot.json';
-import expected from '../drizzle/meta/0164_snapshot.json';
+import expected from '../drizzle/meta/0165_snapshot.json';
 import * as schema from '../src/db/schema';
 
 export async function quickNotesFixture(port: number) {
@@ -29,6 +29,7 @@ export async function quickNotesFixture(port: number) {
   for (const migration of [
     '0161_creator_intake', '0162_quick_notes_task_notices',
     '0163_whatsapp_reliability', '0164_whatsapp_queue_order',
+    '0165_news_social_delivery',
   ]) {
     await pg.exec(await readFile(`drizzle/${migration}.sql`, 'utf8'));
   }

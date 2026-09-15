@@ -1156,6 +1156,13 @@
       "when": 1789295732267,
       "tag": "0164_whatsapp_queue_order",
       "breakpoints": true
+    },
+    {
+      "idx": 165,
+      "version": "7",
+      "when": 1789474020383,
+      "tag": "0165_news_social_delivery",
+      "breakpoints": true
     }
   ]
 }
