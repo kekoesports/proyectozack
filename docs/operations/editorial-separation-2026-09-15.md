@@ -4,6 +4,8 @@ Actualización de autorización: tras el QA local, el usuario autorizó commit, 
 
 La pieza revisada está en `content/editorial/starseries-barcelona-2026.json`, con portada editorial propia. Se comprobó que no existía otro artículo sobre StarSeries. La publicación usa el script acotado `scripts/publish-starseries-20260915.ts`: exige destino `socialpro`, solo inserta el slug previsto y, ante repetición, comprueba el contenido sin sobrescribirlo. No envía newsletter. El despliegue afecta a la web y al worker Zack que carga el criterio editorial; conserva su configuración y horarios.
 
+En la revisión pública previa al despliegue, `/sitemap.xml` devolvía una respuesta cacheada con `/news` y `/news/live`, pero sin URLs de artículos. Se configura el sitemap como dinámico para consultar los contenidos publicados en la base de ejecución y recoger publicaciones posteriores al build. La verificación de producción debe comprobar la presencia del nuevo artículo y la ausencia de documentos de prensa.
+
 ## Alcance y estado
 
 | Área | Estado observado |

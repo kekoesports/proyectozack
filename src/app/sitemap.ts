@@ -8,6 +8,9 @@ import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { getBrandSlugs } from '@/lib/brands';
 import { getAllGlossarySlugs } from '@/lib/glosario';
 
+// Read published URLs from the runtime database, including articles added after a deploy.
+export const dynamic = 'force-dynamic';
+
 // priority and changeFrequency omitted — Google ignores both fields (2023+).
 const BUILD_DATE = new Date();
 
