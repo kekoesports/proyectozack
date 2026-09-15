@@ -1,12 +1,13 @@
 """Install only the public landing SEO routes; preserve the existing proxy config.
 
 Usage on the VPS: python3 caddy-seo.py /opt/socialpro/n8n/Caddyfile
-The sibling backup and candidate contain private configuration: mode 0600.
+Backup and candidate stay in ~/.config/socialpro/public-seo-20260915 (0600).
 """
 import argparse
 import datetime
 import os
 from pathlib import Path
+import re
 import subprocess
 import urllib.request
 import xml.etree.ElementTree as ET
@@ -26,10 +27,10 @@ def transform(source):
     if '# BEGIN PUBLIC LANDING SEO' in source:
         raise ValueError('SEO routes already installed; inspect before changing them')
     for domain in DOMAINS:
-        marker = domain + ' {\n'
-        if source.count(marker) != 1:
+        matches = list(re.finditer(r'^' + re.escape(domain) + r' \{\n', source, re.MULTILINE))
+        if len(matches) != 1:
             raise ValueError('Expected exactly one host block: ' + domain)
-        start = source.index(marker) + len(marker)
+        start = matches[0].end()
         # KekoPilot uses an ordered route and a final deny handler.
         if domain == 'kekopilot.com':
             route = source.index('\troute {\n', start)
@@ -83,6 +84,7 @@ def verify():
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument('config', type=Path)
+    parser.add_argument('--check', action='store_true', help='Validate candidate without applying it')
     args = parser.parse_args()
     os.umask(0o077)
     original = args.config.read_text()
@@ -96,6 +98,9 @@ def main():
     candidate.write_text(updated)
     run(['docker', 'cp', str(candidate), CONTAINER + ':/tmp/public-seo-candidate'])
     run(['docker', 'exec', CONTAINER, 'caddy', 'validate', '--config', '/tmp/public-seo-candidate', '--adapter', 'caddyfile'])
+    if args.check:
+        print('Caddy accepted candidate; running configuration unchanged')
+        return
     try:
         # Preserve inode: the container bind-mounts this exact file.
         write_config(args.config, updated)
