@@ -1,6 +1,6 @@
 # Revisión Twitch y correcciones informativas de KeyDrop — 15/09/2026
 
-Estado: **IMPLEMENTADO localmente / PROBADO con las limitaciones siguientes / NO ACTIVO en producción / FUNCIONAMIENTO acreditado solo en el entorno aislado**.
+Estado al cierre de la revisión previa: **IMPLEMENTADO / PROBADO con las limitaciones siguientes / NO ACTIVO aún en producción / FUNCIONAMIENTO acreditado entonces solo en el entorno aislado**. El usuario autorizó posteriormente desplegar al VPS y estableció que todo push autorizado a master debe incluir despliegue y verificación; consultar la evidencia de esa release para el estado activo.
 
 Rama de preparación: `codex/twitch-seo-review-20260915`, basada en `30b6a368`. Tras esta revisión, el usuario autorizó commit y push a `master` si las comprobaciones eran correctas. No se han cambiado URLs existentes ni aplicado migraciones a bases persistentes. Esta autorización no incluye un despliegue al VPS.
 
