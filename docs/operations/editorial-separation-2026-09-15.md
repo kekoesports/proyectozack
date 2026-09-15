@@ -6,6 +6,8 @@ La pieza revisada está en `content/editorial/starseries-barcelona-2026.json`, c
 
 En la revisión pública previa al despliegue, `/sitemap.xml` devolvía una respuesta cacheada con `/news` y `/news/live`, pero sin URLs de artículos. Se configura el sitemap como dinámico para consultar los contenidos publicados en la base de ejecución y recoger publicaciones posteriores al build. La verificación de producción debe comprobar la presencia del nuevo artículo y la ausencia de documentos de prensa.
 
+Tras activar `8720c816` y publicar StarSeries (registro 97, 2026-09-15 11:27:06 UTC), se verificó en el navegador real: cero borradores de prensa en Noticias, diez propuestas conservadas en Prensa, redirección al editor dedicado y boletín separado. La publicación repetida conservó el mismo ID y fecha, con cero envíos. El sitemap incluyó la noticia. El QA visual detectó que el archivo de portada respondía 200 pero `next/image` lo rechazaba con 400: faltaba permitir `https://socialpro.es/images/news/**`. Se añade únicamente ese origen/ruta sin parámetros; debe verificarse también la imagen optimizada y su carga real, no solo el archivo original.
+
 ## Alcance y estado
 
 | Área | Estado observado |

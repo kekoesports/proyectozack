@@ -165,6 +165,8 @@ const nextConfig: NextConfig = {
   images: {
     formats: ['image/avif', 'image/webp'],
     remotePatterns: [
+      // Editorial uploads use absolute URLs; allow our own public news artwork.
+      { protocol: 'https', hostname: 'socialpro.es', pathname: '/images/news/**', search: '' },
       // Official TikTok oEmbed covers, served through the same-origin optimizer.
       { protocol: 'https', hostname: '**.tiktokcdn-eu.com' },
       { protocol: 'https', hostname: '**.tiktokcdn.com' },
