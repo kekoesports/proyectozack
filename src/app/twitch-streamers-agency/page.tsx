@@ -1,8 +1,11 @@
 import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
+import { TwitchRosterProof } from '@/components/sections/TwitchRosterProof';
 import { SITE_URL, absoluteUrl } from '@/lib/site-url';
 import { buildBreadcrumbJsonLd } from '@/lib/utils/breadcrumbs';
+
+export const revalidate = 3600;
 
 export const metadata: Metadata = {
   title: 'Twitch Streamers Agency — Live Gaming Influencer Marketing',
@@ -45,35 +48,18 @@ const jsonLd = {
 
 const breadcrumbJsonLd = buildBreadcrumbJsonLd([{ name: 'Servicios', url: absoluteUrl('/servicios') }, { name: 'Twitch Streamers Agency', url: absoluteUrl('/twitch-streamers-agency') }]);
 
-const faqJsonLd = {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: [
-    {
-      '@type': 'Question',
-      name: 'Why is Twitch the best platform for live gaming influencer marketing?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: "Twitch viewers don't watch for 30 seconds — they watch for hours. Your brand appears repeatedly throughout a live session, building genuine recall that short-form content cannot replicate. Streamers build intimate relationships with their communities over months and years, so when they recommend your brand live on stream, it carries the weight of a personal endorsement — not an ad. Twitch chat also creates immediate, measurable audience reactions: viewers respond in real time, ask questions and engage directly, delivering focus group data that scales.",
-      },
-    },
-    {
-      '@type': 'Question',
-      name: 'What types of Twitch campaign formats does SocialPro offer?',
-      acceptedAnswer: {
-        '@type': 'Answer',
-        text: 'SocialPro offers three main Twitch campaign formats. Sponsored stream sessions: branded segments integrated naturally into a live stream, including product mentions, on-screen overlays and interactive chat moments. Twitch tournaments: custom tournaments with your brand as presenting sponsor, with full production, custom visuals and a live audience of thousands. Product launch streams: exclusive live reveals with pre-selected streamers, featuring real-time audience reactions and immediate conversion tracking.',
-      },
-    },
-  ],
-};
-
-const STATS = [
-  { stat: '15M+', label: 'Monthly views across roster' },
-  { stat: '4h+', label: 'Average session time on Twitch' },
-  { stat: '86', label: 'Twitch creators in network' },
-  { stat: '<72h', label: 'Brief to live activation' },
+const FAQS = [
+  { question: 'Which Twitch creators can I work with?', answer: 'Browse a selection of our public roster below. Share your target country, audience and campaign objective so we can confirm creator fit and availability before preparing a shortlist.' },
+  { question: 'What does a Twitch campaign include?', answer: 'The brief defines the creators, sponsored segments, overlays, schedule and reporting. We agree on deliverables and measurement before activation; results depend on the audience, creative and campaign.' },
+  { question: 'Do you work with brands in Spain and Latin America?', answer: 'Yes. SocialPro connects brands with gaming creators in Spain and Latin America. Tell us the countries and language you need to reach so the proposal matches your market.' },
 ];
+const faqJsonLd = {
+  '@context': 'https://schema.org', '@type': 'FAQPage',
+  mainEntity: FAQS.map(({ question, answer }) => ({
+    '@type': 'Question', name: question,
+    acceptedAnswer: { '@type': 'Answer', text: answer },
+  })),
+};
 
 const TWITCH_ADVANTAGES = [
   { title: 'Sustained brand exposure', desc: 'Twitch viewers don\'t watch for 30 seconds — they watch for hours. Your brand appears repeatedly throughout a live session, building genuine recall that short-form content cannot replicate.' },
@@ -97,26 +83,20 @@ export default function TwitchStreamersAgencyPage() {
           </h1>
           <p className="text-lg text-white/60 leading-relaxed max-w-2xl mx-auto mb-10">
             Live gaming influencer marketing with Twitch streamers across Spain and LatAm.
-            Verified audiences, sustained brand exposure and conversion tracking from day one.
+            Meet our creators, explore a published brand collaboration and request a shortlist for your campaign.
           </p>
-          <div className="flex flex-wrap justify-center gap-8 mb-10">
-            {STATS.map(({ stat, label }) => (
-              <div key={label} className="text-center">
-                <div className="font-display text-3xl font-black" style={g}>{stat}</div>
-                <div className="text-xs text-white/40 mt-1 max-w-[130px]">{label}</div>
-              </div>
-            ))}
-          </div>
           <Link href="/contact?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">
             Activate Twitch campaign
           </Link>
         </div>
       </section>
 
+      <TwitchRosterProof />
+
       <section className="bg-white py-16 md:py-20">
         <div className="max-w-5xl mx-auto px-6">
           <p className="text-sp-orange text-xs font-bold uppercase tracking-[0.2em] mb-2">The Twitch difference</p>
-          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-10">Live means deeper. Deeper means better ROI.</h2>
+          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-10">Build a campaign around the live experience.</h2>
           <div className="grid sm:grid-cols-2 gap-6">
             {TWITCH_ADVANTAGES.map((a) => (
               <div key={a.title} className="rounded-2xl border border-sp-border bg-sp-off p-6">
@@ -135,12 +115,26 @@ export default function TwitchStreamersAgencyPage() {
           <div className="grid md:grid-cols-3 gap-4">
             {[
               { t: 'Sponsored stream sessions', d: 'Branded segments integrated naturally into a live stream. Product mentions, on-screen overlays and interactive chat moments.' },
-              { t: 'Twitch tournaments', d: 'Custom tournaments with your brand as presenting sponsor. Full production, custom visuals and live audience of thousands.' },
+              { t: 'Twitch tournaments', d: 'Custom tournaments with your brand as presenting sponsor. Production, visuals and an audience plan agreed in the brief.' },
               { t: 'Product launch streams', d: 'Exclusive live reveals with pre-selected streamers. Real-time audience reactions and immediate conversion tracking.' },
             ].map(({ t, d }) => (
               <div key={t} className="bg-white rounded-2xl border border-sp-border p-5">
                 <h3 className="font-display text-sm font-black uppercase text-sp-dark mb-2">{t}</h3>
                 <p className="text-sm text-sp-muted leading-relaxed">{d}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="bg-white py-16">
+        <div className="max-w-4xl mx-auto px-6">
+          <h2 className="font-display text-3xl font-black uppercase text-sp-dark mb-8">Planning your Twitch campaign</h2>
+          <div className="space-y-6">
+            {FAQS.map(({ question, answer }) => (
+              <div key={question}>
+                <h3 className="font-display text-xl font-bold text-sp-dark mb-2">{question}</h3>
+                <p className="text-sm text-sp-muted leading-relaxed">{answer}</p>
               </div>
             ))}
           </div>
@@ -172,7 +166,7 @@ export default function TwitchStreamersAgencyPage() {
       <section className="bg-sp-black py-16 text-center">
         <div className="max-w-2xl mx-auto px-6">
           <h2 className="font-display text-3xl font-black uppercase text-white mb-4">Your brand. <span style={g}>Live on Twitch.</span></h2>
-          <p className="text-white/50 mb-8">Tell us your brand, target audience and campaign goal. We match you with the right Twitch streamers and deliver a proposal in 48 hours.</p>
+          <p className="text-white/50 mb-8">Tell us your brand, target audience and campaign goal. We confirm creator availability and prepare a proposal around your brief.</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/contact?type=brand" className="inline-block bg-sp-grad text-white font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:opacity-90 transition-opacity">Get a proposal</Link>
             <Link href="/talents" className="inline-block border border-white/20 text-white/60 font-display font-bold uppercase tracking-wider text-sm px-8 py-3 rounded-full hover:border-white/40 hover:text-white transition-colors">View our streamers →</Link>
