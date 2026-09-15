@@ -7,6 +7,7 @@ const ROOT = path.resolve(__dirname, '..', '..', '..');
 const vercelCronsSchema = z.object({ crons: z.array(z.object({ path: z.string(), schedule: z.string() })) });
 const PROFILE_POLL = '/api/cron/discover-creator-targets';
 const LIVE_AUDIENCE_COLLECTOR = '/api/cron/collect-creator-live-audience';
+const NEWS_SOCIAL = '/api/cron/news-social';
 
 describe('scheduler VPS', () => {
   const vercel = vercelCronsSchema.parse(JSON.parse(fs.readFileSync(path.join(ROOT, 'vercel.json'), 'utf8')));
@@ -18,12 +19,12 @@ describe('scheduler VPS', () => {
     if (match?.[1] && match[2]) scheduledOnVps.set(`/api/cron/${match[2]}`, match[1]);
   }
 
-  it('mantiene intactos los otros horarios heredados, salvo los dos sondeos VPS explícitos', () => {
+  it('mantiene intactos los horarios heredados salvo los sondeos exclusivos del VPS', () => {
     // Live status is VPS-only. Creator discovery now polls due daily profiles instead of
     // forcing their configurable/local-time schedule to Vercel's legacy fixed UTC minute.
     const inheritedSchedules = [...scheduledOnVps]
       .filter(([path]) => path !== '/api/cron/poll-live-status' && path !== PROFILE_POLL
-        && path !== LIVE_AUDIENCE_COLLECTOR);
+        && path !== LIVE_AUDIENCE_COLLECTOR && path !== NEWS_SOCIAL);
 
     expect(inheritedSchedules.sort()).toEqual(
       vercel.crons.filter(cron => cron.path !== PROFILE_POLL).map((cron) => [cron.path, cron.schedule] as const).sort(),
@@ -32,6 +33,14 @@ describe('scheduler VPS', () => {
 
   it('mantiene desactivado el antiguo backup interno', () => {
     expect(scheduledOnVps.has('/api/cron/backup')).toBe(false);
+  });
+
+  it('comprueba noticias para redes una vez cada cinco minutos, con autenticación y solo en el VPS', () => {
+    expect(scheduledOnVps.get(NEWS_SOCIAL)).toBe('*/5 * * * *');
+    const commands = crontab.split(/\r?\n/).filter(line => !line.trimStart().startsWith('#') && line.includes(NEWS_SOCIAL));
+    expect(commands).toHaveLength(1);
+    expect(commands[0]).toContain('-H "Authorization: Bearer $CRON_SECRET" http://app:3000/api/cron/news-social');
+    expect(vercel.crons.some(cron => cron.path === NEWS_SOCIAL)).toBe(false);
   });
 
   it('actualiza los directos de Twitch cada cinco minutos solo en el VPS', () => {
