@@ -13,44 +13,32 @@
   "nodes": [
     {
       "parameters": {
-        "rule": {
-          "interval": [
+        "pollTimes": {
+          "item": [
             {
-              "field": "minutes",
-              "minutesInterval": 2
+              "mode": "everyMinute"
             }
           ]
-        }
-      },
-      "id": "gmail-sent-schedule",
-      "name": "Cada 2 minutos",
-      "type": "n8n-nodes-base.scheduleTrigger",
-      "typeVersion": 1.2,
-      "position": [
-        -560,
-        0
-      ],
-      "notes": "Solo observa mensajes enviados después de activar este circuito; no modifica Gmail."
-    },
-    {
-      "parameters": {
+        },
         "authentication": "oAuth2",
-        "resource": "message",
-        "operation": "getAll",
-        "returnAll": false,
-        "limit": 20,
+        "event": "messageReceived",
         "simple": true,
         "filters": {
-          "q": "in:sent from:pcamacho@socialpro.es after:1789485927"
+          "labelIds": [
+            "SENT"
+          ],
+          "q": "in:sent from:pcamacho@socialpro.es",
+          "readStatus": "both",
+          "includeDrafts": false
         },
         "options": {}
       },
       "id": "gmail-sent-read",
-      "name": "Leer enviados nuevos",
-      "type": "n8n-nodes-base.gmail",
-      "typeVersion": 2.2,
+      "name": "Detectar enviado nuevo",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.2,
       "position": [
-        -320,
+        -440,
         0
       ],
       "credentials": {
@@ -59,7 +47,7 @@
           "name": "SocialPro Gmail - pcamacho"
         }
       },
-      "notes": "Lectura acotada a Enviados de pcamacho@socialpro.es. No etiqueta, borra ni envía correos."
+      "notes": "Observa solo mensajes nuevos con la etiqueta SENT desde la activación. La versión 1.2 admite enviados; versiones posteriores del nodo excluyen SENT. No etiqueta, borra ni envía correos."
     },
     {
       "parameters": {
@@ -107,18 +95,7 @@
     }
   ],
   "connections": {
-    "Cada 2 minutos": {
-      "main": [
-        [
-          {
-            "node": "Leer enviados nuevos",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Leer enviados nuevos": {
+    "Detectar enviado nuevo": {
       "main": [
         [
           {
