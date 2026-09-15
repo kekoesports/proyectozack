@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { newsCoverStyle } from '@/lib/utils/news-cover';
 import type { PostWithTalents } from '@/lib/queries/posts';
 import { deriveNewsCategory, formatNewsDate, readingMinutes } from '@/lib/utils/news';
 import { derivePostRegionBadge } from '@/lib/utils/news-roles';
@@ -53,7 +54,7 @@ export function NewsCard({ post, density = 'normal', tone = 'dark' }: Props) {
       <div className="relative aspect-[16/9] bg-sp-black overflow-hidden flex-none">
         {post.coverUrl ? (
           <Image
-            src={post.coverUrl}
+            src={post.coverUrl} style={newsCoverStyle(post.coverUrl)}
             alt=""
             fill
             sizes={compact ? '(min-width:1024px) 280px, 100vw' : '(min-width:1024px) 420px, 100vw'}

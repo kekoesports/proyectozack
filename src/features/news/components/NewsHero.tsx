@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import Image from 'next/image';
+import { newsCoverStyle } from '@/lib/utils/news-cover';
 import type { PostWithTalents } from '@/lib/queries/posts';
 import { deriveNewsCategory, formatNewsDate, readingMinutes } from '@/lib/utils/news';
 
@@ -26,7 +27,7 @@ export function NewsHeroCard({ post }: { readonly post: PostWithTalents }) {
         <span className="sr-only">{post.title}</span>
       </Link>
       {post.coverUrl ? (
-        <Image src={post.coverUrl} alt="" fill priority sizes="(min-width:1024px) 58vw, 100vw"
+        <Image src={post.coverUrl} style={newsCoverStyle(post.coverUrl)} alt="" fill priority sizes="(min-width:1024px) 58vw, 100vw"
           className="object-cover transition-transform duration-700 group-hover:scale-[1.03]" />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-[#0d1420] to-sp-black" />
@@ -75,7 +76,7 @@ export function NewsSecondaryLarge({ post }: { readonly post: PostWithTalents })
         <span className="sr-only">{post.title}</span>
       </Link>
       {post.coverUrl ? (
-        <Image src={post.coverUrl} alt="" fill sizes="(min-width:1024px) 28vw, 100vw"
+        <Image src={post.coverUrl} style={newsCoverStyle(post.coverUrl)} alt="" fill sizes="(min-width:1024px) 28vw, 100vw"
           className="object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-[#0d1420] to-sp-black" />
@@ -110,7 +111,7 @@ export function NewsSecondaryMedium({ post }: { readonly post: PostWithTalents }
         <span className="sr-only">{post.title}</span>
       </Link>
       {post.coverUrl ? (
-        <Image src={post.coverUrl} alt="" fill sizes="(min-width:1024px) 28vw, 100vw"
+        <Image src={post.coverUrl} style={newsCoverStyle(post.coverUrl)} alt="" fill sizes="(min-width:1024px) 28vw, 100vw"
           className="object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-[#0d1420] to-sp-black" />
@@ -148,7 +149,7 @@ export function NewsCompactStrip({ post, label }: { readonly post: PostWithTalen
       {/* Thumbnail izquierda */}
       <div className="relative w-[120px] md:w-[140px] shrink-0 overflow-hidden">
         {post.coverUrl ? (
-          <Image src={post.coverUrl} alt="" fill sizes="140px"
+          <Image src={post.coverUrl} style={newsCoverStyle(post.coverUrl)} alt="" fill sizes="140px"
             className="object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
         ) : (
           <div className="absolute inset-0 bg-gradient-to-br from-[#0d1420] to-sp-black" />
@@ -189,7 +190,7 @@ export function NewsMiniCard({ post }: { readonly post: PostWithTalents }) {
         <span className="sr-only">{post.title}</span>
       </Link>
       {post.coverUrl ? (
-        <Image src={post.coverUrl} alt="" fill sizes="(min-width:1024px) 18vw, 50vw"
+        <Image src={post.coverUrl} style={newsCoverStyle(post.coverUrl)} alt="" fill sizes="(min-width:1024px) 18vw, 50vw"
           className="object-cover transition-transform duration-500 group-hover:scale-[1.05]" />
       ) : (
         <div className="absolute inset-0 bg-gradient-to-br from-[#0d1420] to-sp-black" />

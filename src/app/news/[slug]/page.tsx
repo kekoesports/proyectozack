@@ -2,6 +2,7 @@ import type { Metadata } from 'next';
 import { safeJsonLd } from '@/lib/safeJsonLd';
 import Link from 'next/link';
 import Image from 'next/image';
+import { newsCoverStyle } from '@/lib/utils/news-cover';
 import { notFound } from 'next/navigation';
 import { getNewsSlugs, getPostBySlug, getRelatedNewsPosts } from '@/lib/queries/posts';
 import { deriveNewsCategory, formatNewsDate, readingMinutes } from '@/lib/utils/news';
@@ -175,7 +176,7 @@ export default async function NewsArticlePage({ params }: PageProps) {
                 {post.coverUrl ? (
                   <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-white/[0.06] bg-white/[0.03]">
                     <Image
-                      src={post.coverUrl}
+                      src={post.coverUrl} style={newsCoverStyle(post.coverUrl)}
                       alt={post.title}
                       fill
                       priority
